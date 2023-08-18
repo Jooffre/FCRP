@@ -1,0 +1,43 @@
+// Shader "Hidden/Custom RP/Color Grading"
+// {
+//     SubShader
+//     {
+// 		Cull Off
+// 		ZTest Always
+// 		ZWrite Off
+		
+// 		HLSLINCLUDE
+
+// 		#include "../../ShaderLibrary/Common.hlsl"
+// 		#include "ColorGrading.hlsl"
+		
+//         ENDHLSL
+
+// 		Pass // 0
+//         {
+// 			Name "Copy Cache"
+			
+// 			HLSLPROGRAM
+
+//             #pragma target 3.5
+//             #pragma vertex DefaultPassVertex
+//             #pragma fragment CopyCachePassFragment
+
+// 			ENDHLSL
+// 		}
+
+//         Pass // 1
+//         {
+// 			Name "ColorGrading"
+			
+// 			HLSLPROGRAM
+
+//             #pragma target 3.5
+//             #pragma vertex DefaultPassVertex
+//             #pragma fragment ColorGradingPassFragment
+
+// 			ENDHLSL
+// 		}
+
+//     }
+// }

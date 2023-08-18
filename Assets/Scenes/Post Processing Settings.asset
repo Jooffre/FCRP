@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4526882a5869f7a4ba83f4f04248736a, type: 3}
+  m_Name: Post Processing Settings
+  m_EditorClassIdentifier: 
+  bloom:
+    enableBloom: 1
+    threshold: 1
+    intensity: 1
+    kneeFactor: 0
+    tint: {r: 0.63623285, g: 0.504717, b: 1, a: 1}
+    highQuailty: 1
+    fadeFireflies: 1
+    mode: 0
+    scatter: 0.3
+    maxIterations: 16
+    minDownscalePixels: 128
+  colorAdjustments:
+    enableColorAdjustments: 1
+    postExposure: 0
+    contrast: 0
+    colorFilter: {r: 1, g: 1, b: 1, a: 0}
+    hueShift: 0
+    saturation: 0
+  toneMapping:
+    enableToneMapping: 1
+    mode: 2
