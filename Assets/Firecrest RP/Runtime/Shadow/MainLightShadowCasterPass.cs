@@ -207,6 +207,9 @@ public class MainLightShadowCasterPass
         buffer.SetGlobalMatrixArray(ShaderPropertyID.worldToShadowMatID, m_MainLightShadowMatrices);
 
         buffer.SetGlobalVector(ShaderPropertyID.shadowParamsID, new Vector4(light.shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
+        buffer.SetGlobalVector(ShaderPropertyID.cascadeZDistanceID, 
+        new Vector4(ShadowSettings.maxShadowDistance * 0.12f, ShadowSettings.maxShadowDistance * 0.18f,
+        ShadowSettings.maxShadowDistance * 0.2f, ShadowSettings.maxShadowDistance * 0.5f));
 
         float f = 1f - 0.1f; //1f - settings.directional.cascadeFade;
         buffer.SetGlobalVector(ShaderPropertyID.shadowFadingDataID, new Vector4(1f / 50f, 1f / 0.1f, 1f / (1f - f * f), 0));
@@ -218,27 +221,21 @@ public class MainLightShadowCasterPass
             buffer.SetGlobalVector
             (
                 ShaderPropertyID.cascadeShadowSplitSphereRadiiID,
-                new Vector4
-                (
-                    m_CascadeSplitDistances[0].w * m_CascadeSplitDistances[0].w,
-                    m_CascadeSplitDistances[1].w * m_CascadeSplitDistances[1].w,
-                    m_CascadeSplitDistances[2].w * m_CascadeSplitDistances[2].w,
-                    m_CascadeSplitDistances[3].w * m_CascadeSplitDistances[3].w
-                )
+                new Vector4 (m_CascadeSplitDistances[0].w, m_CascadeSplitDistances[1].w, m_CascadeSplitDistances[2].w, m_CascadeSplitDistances[3].w)
             );
         }
 
-        if (supportsSoftShadows)
-        {
-            buffer.SetGlobalVector(ShaderPropertyID.shadowOffset0ID, new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            buffer.SetGlobalVector(ShaderPropertyID.shadowOffset1ID, new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            buffer.SetGlobalVector(ShaderPropertyID.shadowOffset2ID, new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
-            buffer.SetGlobalVector(ShaderPropertyID.shadowOffset3ID, new Vector4(invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
+        // if (supportsSoftShadows)
+        // {
+        //     buffer.SetGlobalVector(ShaderPropertyID.shadowOffset0ID, new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
+        //     buffer.SetGlobalVector(ShaderPropertyID.shadowOffset1ID, new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
+        //     buffer.SetGlobalVector(ShaderPropertyID.shadowOffset2ID, new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
+        //     buffer.SetGlobalVector(ShaderPropertyID.shadowOffset3ID, new Vector4(invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
 
-            // Currently only used when !SHADER_API_MOBILE but risky to not set them as it's generic
-            // enough so custom shaders might use it.
-            buffer.SetGlobalVector(ShaderPropertyID.shadowmapSizeID, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight, renderTargetWidth, renderTargetHeight));
-        }
+        //     // Currently only used when !SHADER_API_MOBILE but risky to not set them as it's generic
+        //     // enough so custom shaders might use it.
+        //     buffer.SetGlobalVector(ShaderPropertyID.shadowmapSizeID, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight, renderTargetWidth, renderTargetHeight));
+        // }
     }
 
     private void Clear()
@@ -246,7 +243,6 @@ public class MainLightShadowCasterPass
         RenderTexture.ReleaseTemporary(m_MainLightShadowmapTexture);
         m_MainLightShadowmapTexture = null;
         
-
         for (int i = 0; i < m_MainLightShadowMatrices.Length; ++i)
             m_MainLightShadowMatrices[i] = Matrix4x4.identity;
 

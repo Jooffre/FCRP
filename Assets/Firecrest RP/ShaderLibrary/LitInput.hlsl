@@ -2,9 +2,9 @@
 #define FIRECREST_LIT_INPUT_INCLUDED
 
 
-TEXTURE2D(_BaseMap);        SAMPLER(sampler_BaseMap);
+TEXTURE2D(_BaseMap);            SAMPLER(sampler_BaseMap);
 TEXTURE2D(_EmissionMap);
-TEXTURE3D(_DitherMaskLOD);  SAMPLER(sampler_DitherMaskLOD);
+TEXTURE3D(_DitherMaskLOD);      SAMPLER(sampler_DitherMaskLOD);
 
 //CBUFFER_START(UnityPerMaterial)
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)

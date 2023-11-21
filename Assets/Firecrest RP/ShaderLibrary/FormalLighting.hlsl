@@ -1,7 +1,11 @@
 #ifndef FIRECREST_FORMAL_LIGHT_INCLUDED
 #define FIRECREST_FORMAL_LIGHT_INCLUDED
 
+
 #include "BRDF.hlsl"
+
+TEXTURE2D(_ShadowRampMap);
+SAMPLER(sampler_ShadowRampMap);
 
 // Computes the scalar specular term for Minimalist CookTorrance BRDF
 // NOTE: needs to be multiplied with reflectance f0, i.e. specular color to complete
@@ -40,37 +44,39 @@ half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionW
 }
 
 
+float GetRampValue(float attenuation)
+{
+    if (attenuation < 0.4) return 1.0;
+    else if (attenuation > 0.96) return 1.0;
+    else
+    {
+        float forwardSS = smoothstep(0.4, 0.96, attenuation);
+        float reversedSS = 1 - forwardSS;
+        return forwardSS * reversedSS;
+    }
+}
+
+
 half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
     half3 lightColor, half3 lightDirectionWS, half lightAttenuation,
     half3 normalWS, half3 viewDirectionWS,
     half clearCoatMask, bool specularHighlightsOff)
 {
+    float rampUV_U = clamp(lightAttenuation, 0.25, 0.99);
+    float rampUV_V = 0.5;
+    float3 shadowRampColor = SAMPLE_TEXTURE2D(_ShadowRampMap, sampler_ShadowRampMap, float2(rampUV_U, rampUV_V)).rgb;
+
     half NdotL = saturate(dot(normalWS, lightDirectionWS));
-    half3 radiance = lightColor * (lightAttenuation * NdotL);
+    half3 radiance = lightColor * (NdotL * lightAttenuation);
+    radiance += UNITY_LIGHTMODEL_AMBIENT;
 
     half3 brdf = brdfData.diffuse;
 #ifndef _SPECULARHIGHLIGHTS_OFF
     [branch] if (!specularHighlightsOff)
     {
         brdf += brdfData.specular * DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS);
-
-// #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-//         // Clear coat evaluates the specular a second timw and has some common terms with the base specular.
-//         // We rely on the compiler to merge these and compute them only once.
-//         half brdfCoat = kDielectricSpec.r * DirectBRDFSpecular(brdfDataClearCoat, normalWS, lightDirectionWS, viewDirectionWS);
-
-//             // Mix clear coat and base layer using khronos glTF recommended formula
-//             // https://github.com/KhronosGroup/glTF/blob/master/extensions/2.0/Khronos/KHR_materials_clearcoat/README.md
-//             // Use NoV for direct too instead of LoH as an optimization (NoV is light invariant).
-//             half NoV = saturate(dot(normalWS, viewDirectionWS));
-//             // Use slightly simpler fresnelTerm (Pow4 vs Pow5) as a small optimization.
-//             // It is matching fresnel used in the GI/Env, so should produce a consistent clear coat blend (env vs. direct)
-//             half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * Pow4(1.0 - NoV);
-
-//         brdf = brdf * (1.0 - clearCoatMask * coatFresnel) + brdfCoat * clearCoatMask;
-// #endif // _CLEARCOAT
     }
-#endif // _SPECULARHIGHLIGHTS_OFF
+#endif
 
     return brdf * radiance;
 }

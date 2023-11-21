@@ -4,7 +4,7 @@
 
 #include "../ShaderLibrary/Surface.hlsl"
 #include "../ShaderLibrary/Shadows.hlsl"
-#include "../ShaderLibrary/Light.hlsl"
+#include "../ShaderLibrary/Lighting/ComputeLight.hlsl"
 #include "../ShaderLibrary/BRDF.hlsl"
 
 

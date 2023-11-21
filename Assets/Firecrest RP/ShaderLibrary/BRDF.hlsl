@@ -1,7 +1,7 @@
 #ifndef FIRECREST_BRDF_INCLUDED
 #define FIRECREST_BRDF_INCLUDED
 
-#include "Light.hlsl"
+#include "Lighting/ComputeLight.hlsl"
 
 #define MIN_REFLECTIVITY 0.04
 #define kDielectricSpec half4(0.04, 0.04, 0.04, 1.0 - 0.04) // standard dielectric reflectivity coef at incident angle (= 4%)

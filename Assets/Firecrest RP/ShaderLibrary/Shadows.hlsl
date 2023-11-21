@@ -58,11 +58,19 @@ CBUFFER_END
 
 // --------------------------------------------------
 
+struct ShadowMask
+{
+    bool        always;     // always mode
+    bool        distance;   // distance mode
+    float4      shadows;
+};
+
 struct ShadowData
 {
     float       strength;
     float       cascadeBlend;
 	int         cascadeIndex;
+    ShadowMask  shadowMask;
 };
 
 struct DirectionalShadowData
@@ -70,6 +78,7 @@ struct DirectionalShadowData
 	float       strength;   // the final strength of shadow that ranged from 0 to 1
     float       normalBias;
     int         tileIndex;
+    int         shadowMaskChannel;
 };
 
 
@@ -79,7 +88,7 @@ struct DirectionalShadowData
 // let shadow fade out when the distance from viewpoint increasing
 // fade = (1-d*s)*f clamp to [0, 1]
 // note that the s and f are the reciprocals of parameters inputed
-float FadedShadowStrength (float distance, float scale, float fadeFactor)
+float FadedShadowStrength(float distance, float scale, float fadeFactor)
 {
 	return saturate((1.0 - distance * scale) * fadeFactor);
 }
@@ -124,6 +133,12 @@ ShadowData GetShadowData(Surface surfaceWS)
 #endif
 
 	shadowData.cascadeIndex = i;
+
+    // shadow mask
+
+    shadowData.shadowMask.always = false;
+    shadowData.shadowMask.distance = false;
+    shadowData.shadowMask.shadows = 1.0;
 	
     return shadowData;
 }
@@ -167,6 +182,12 @@ ShadowData GetShadowData(float3 positionWS, float depth, float dither)
 #endif
 
 	shadowData.cascadeIndex = i;
+
+    // shadow mask
+
+    shadowData.shadowMask.always = false;
+    shadowData.shadowMask.distance = false;
+    shadowData.shadowMask.shadows = 1.0;
 	
     return shadowData;
 }
@@ -209,23 +230,13 @@ float FilterDirectionalShadow(float3 positionSTS)
 //   - if a fragment is fully shadowed then we get 0.0 and when it's not shadowed at all then we get 1.0.
 //   - values in between indicate that the fragment is partially shadowed.
 
-float GetDirectionalShadowAttenuation(DirectionalShadowData dirShadowData, ShadowData global, Surface surfaceWS)
+float GetRealtimeShadowAttenuation(DirectionalShadowData dirShadowData, ShadowData global, Surface surfaceWS)
 {
-    // don't receive shadows, return 1.0
-#if !defined(_RECEIVE_SHADOWS)
-    return 1.0;
-#endif
-
-    // ignore the lights that disable shadow or shadow strength is 0.0
-    if (dirShadowData.strength <= 0.0)
-    {
-		return 1.0;
-	}
-
     float3 normalBias = surfaceWS.normalWS * (dirShadowData.normalBias * _CascadeData[global.cascadeIndex].y);
-    // transformWorldToShadow
+    // transform WorldToShadow
 	float3 positionSTS = mul(_TransformMatrices[dirShadowData.tileIndex], float4(surfaceWS.position + normalBias, 1.0)).xyz;
-	float shadow = FilterDirectionalShadow(positionSTS);
+	
+    float shadow = FilterDirectionalShadow(positionSTS);
 
     if (global.cascadeBlend < 1.0)
     {
@@ -233,9 +244,77 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData dirShadowData, Shado
 		positionSTS = mul(_TransformMatrices[dirShadowData.tileIndex + 1], float4(surfaceWS.position + normalBias, 1.0)).xyz;
 		shadow = lerp(FilterDirectionalShadow(positionSTS), shadow, global.cascadeBlend);
 	}
-	
-    return lerp(1.0, shadow, dirShadowData.strength);
+
+    return shadow;
 }
 
+float GetBakedShadowAttenuation(ShadowMask mask, int channel)
+{
+    float shadow = 1.0;
+    if (mask.always || mask.distance)
+    {
+        if (channel >= 0)
+        {
+            shadow = mask.shadows[channel];
+        }
+    }
+
+    return shadow;
+}
+
+// variant
+float GetBakedShadowAttenuation(ShadowMask mask, int channel, float strength)
+{
+    if (mask.always || mask.distance)
+    {
+        return lerp(1.0, GetBakedShadowAttenuation(mask, channel), strength);
+    }
+
+    return 1.0;
+}
+
+float MixBakedAndRealtimeShadows(ShadowData shadowData, float shadow, int shadowMaskChannel, float strength)
+{
+    float bakedShadow = GetBakedShadowAttenuation(shadowData.shadowMask, shadowMaskChannel);
+    
+    if (shadowData.shadowMask.always)
+    {
+		shadow = lerp(1.0, shadow, shadowData.strength);
+		shadow = min(bakedShadow, shadow);
+		return lerp(1.0, shadow, strength);
+    }
+
+    if (shadowData.shadowMask.distance)
+    {
+        shadow = lerp(bakedShadow, shadow, shadowData.strength);
+        
+        return lerp(1.0, shadow, strength);
+    }
+
+    return lerp(1.0, shadow, strength * shadowData.strength);
+}
+
+float GetDirectionalShadowAttenuation(DirectionalShadowData dirShadowData, ShadowData shadowData, Surface surfaceWS)
+{
+    // don't receive shadows, return 1.0
+#if !defined(_RECEIVE_SHADOWS)
+    return 1.0;
+#endif
+
+    float shadow;
+
+    // ignore the lights that disable shadow or shadow strength is 0.0
+    if (dirShadowData.strength * shadowData.strength <= 0.0)
+    {
+		shadow = GetBakedShadowAttenuation(shadowData.shadowMask, dirShadowData.shadowMaskChannel, abs(dirShadowData.strength));
+	}
+    else
+    {
+        shadow = GetRealtimeShadowAttenuation(dirShadowData, shadowData, surfaceWS);
+        shadow = MixBakedAndRealtimeShadows(shadowData, shadow, dirShadowData.shadowMaskChannel, dirShadowData.strength);
+    }
+
+    return shadow;
+}
 
 #endif

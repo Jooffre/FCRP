@@ -41,6 +41,14 @@ public class ForwardShadows
 		"_DIRECTIONAL_PCF7",
 	};
 
+    static string[] shadowMaskKeywords =
+    {
+        "_SHADOW_MASK_DEFAULT",
+        "_SHADOW_MASK_DISTANCE"
+    };
+    
+    bool useShadowMask;
+
 	static Vector4[]
     cascadeCullingSpheres = new Vector4[maxCascades],
     cascadeBiasData = new Vector4[maxCascades];
@@ -80,6 +88,7 @@ public class ForwardShadows
 		this.cullingResults = cullingResults;
 		this.settings = settings;
         ShadowedDirectionalLightCount = 0;
+        useShadowMask = false;
     }
 
 
@@ -103,6 +112,17 @@ public class ForwardShadows
                 RenderTextureFormat.Shadowmap
 			);
         }
+
+        // shadow mask is not realtime, we have to set the keywords anyway.
+        buffer.BeginSample(bufferName);
+
+        SetKeywords(shadowMaskKeywords, 
+                        /* mark: the following statement = (true, true) : (true, false) : (false, -) */
+                        useShadowMask ? QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask? 
+                            0 : 1 : -1);
+
+        buffer.EndSample(bufferName);
+        ExecuteBuffer();
     }
 
 
@@ -335,7 +355,7 @@ public class ForwardShadows
     /// <para>To reserve space in the shadow atlas for the light's shadow map,
     /// and store the information needed to render them.</para>
     /// </summary>
-    public Vector3 ReserveDirectionalShadows (Light light, int visibleLightIndex)
+    public Vector4 ReserveDirectionalShadows (Light light, int visibleLightIndex)
     {
         // record a light if
         //   - the configurated light < preseted max number
@@ -346,8 +366,17 @@ public class ForwardShadows
             ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount
             && light.shadows != LightShadows.None
             && light.shadowStrength > 0f
-            && cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b) // also returns a bounding box
+            //&& cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b) // also returns a bounding box
         ){
+            // if use shadow mask
+            float maskChannel = -1;
+            ShadowMaskIfnot(light);
+            if (useShadowMask)
+                maskChannel = light.bakingOutput.occlusionMaskChannel;
+
+            if (!cullingResults.GetShadowCasterBounds(visibleLightIndex, out Bounds b))
+                return new Vector4(-light.shadowStrength, 0f, 0f, maskChannel);
+
             ShadowedDirectionalLights[ShadowedDirectionalLightCount]
             = new ShadowedDirectionalLight
             {
@@ -355,22 +384,43 @@ public class ForwardShadows
                 slopeScaleBias = light.shadowBias,
                 nearPlaneOffset = light.shadowNearPlane
             };
-            return new Vector3
+            return new Vector4
             (
                 light.shadowStrength,
 
                 // record the start index for each light
                 // e.g., 0, 4, 8, 12
                 settings.directional.cascadeCount * ShadowedDirectionalLightCount++,
-                
-                light.shadowNormalBias
+
+                light.shadowNormalBias,
+
+                maskChannel
             );
         }
         else
-            return Vector3.zero;
+            return new Vector4(0f, 0f, 0f, -1f);
     }
     
+
+    /// <summary>
+    /// The function checks if using shadow mask, true if a light's baking output is set to Mixed 
+    /// and the mixed lighting mode is set to "Shadowmask".
+    /// </summary>
+    /// <param name ="light">The "Light" parameter is an object of the Light class. It represents a light
+    /// source in a scene, such as a directional light, point light, or spot light.</param>
+    private void ShadowMaskIfnot(Light light)
+    {
+        LightBakingOutput lightBaking = light.bakingOutput;
+
+        if (
+            lightBaking.lightmapBakeType == LightmapBakeType.Mixed
+            && lightBaking.mixedLightingMode == MixedLightingMode.Shadowmask
+        ){
+            useShadowMask = true;
+        }
+    }
     
+
     /// <summary>
     /// Release the temporary RT for shadow atlas.
     /// </summary>

@@ -1,5 +1,5 @@
-#ifndef CUSTOM_GI_INCLUDED
-#define CUSTOM_GI_INCLUDED
+#ifndef FIRECREST_GI_INCLUDED
+#define FIRECREST_GI_INCLUDED
 
 
 // --------------------------------------------------
@@ -23,12 +23,15 @@
     #define GI_FRAGMENT_DATA(input) 0.0
 #endif
 
-
+ 
 // --------------------------------------------------
 // define sampling of the light map and LPPV
 
-TEXTURE2D(unity_Lightmap);    // the light map texture is known as "unity_Lightmap"
+TEXTURE2D(unity_Lightmap);    // the light map texture is named as "unity_Lightmap"
 SAMPLER(samplerunity_Lightmap);
+
+TEXTURE2D(unity_ShadowMask);
+SAMPLER(samplerunity_ShadowMask);
 
 TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
@@ -37,11 +40,12 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 struct GI
 {
     float3      diffuse;
+    ShadowMask  shadowMask;
 };
 
 
 // --------------------------------------------------
-// methods from here
+
 
 // sample the light map
 float3 SampleLightMap(float2 lightMapUV)
@@ -65,6 +69,30 @@ float3 SampleLightMap(float2 lightMapUV)
 }
 
 
+float4 SampleBakedShadows(float2 lightMapUV, Surface surfaceWS)
+{
+# if defined(LIGHTMAP_ON)
+    return SAMPLE_TEXTURE2D(unity_ShadowMask, samplerunity_ShadowMask, lightMapUV);
+# else
+    if (unity_ProbeVolumeParams.x)
+    {
+        return SampleProbeOcclusion
+        (
+            TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH),
+            surfaceWS.position,
+            unity_ProbeVolumeWorldToObject,
+            unity_ProbeVolumeParams.y,
+            unity_ProbeVolumeParams.z,
+            unity_ProbeVolumeMin.xyz,
+            unity_ProbeVolumeSizeInv.xyz
+        );
+    }
+    else
+        return unity_ProbesOcclusion;
+# endif
+}
+
+
 float3 SampleLightProbe (Surface surfaceWS)
 {
 #if defined(LIGHTMAP_ON)
@@ -74,10 +102,13 @@ float3 SampleLightProbe (Surface surfaceWS)
     {
         return SampleProbeVolumeSH4(
             TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH),
-            surfaceWS.position, surfaceWS.normalWS,
+            surfaceWS.position,
+            surfaceWS.normalWS,
             unity_ProbeVolumeWorldToObject,
-            unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z,
-            unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz
+            unity_ProbeVolumeParams.y,
+            unity_ProbeVolumeParams.z,
+            unity_ProbeVolumeMin.xyz,
+            unity_ProbeVolumeSizeInv.xyz
 			);
 	}
     else
@@ -103,6 +134,18 @@ GI GetGI(float2 lightMapUV, Surface surfaceWS)
     GI gi;
     
     gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
+    gi.shadowMask.always = false;
+    gi.shadowMask.distance = false;
+    gi.shadowMask.shadows = 1.0;
+
+# if defined(_SHADOW_MASK_DEFAULT)
+    gi.shadowMask.always = true;
+    gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
+#elif defined(_SHADOW_MASK_DISTANCE)
+    gi.shadowMask.distance = true;
+    gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
+
+# endif
 
     return gi;
 }

@@ -1,4 +1,4 @@
-Shader "Custom RP/Lit"
+Shader "Firecrest RP/Lit"
 {
     Properties
     {
@@ -62,7 +62,7 @@ Shader "Custom RP/Lit"
 
             #pragma multi_compile_instancing
             #pragma multi_compile _ LIGHTMAP_ON
-
+            #pragma multi_compile _ _SHADOW_MASK_DEFAULT _SHADOW_MASK_DISTANCE
             #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
 
             #pragma shader_feature _ _WORKFLOW_SPECULAR

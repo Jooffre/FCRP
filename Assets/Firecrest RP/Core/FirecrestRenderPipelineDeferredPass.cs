@@ -116,6 +116,7 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
         Executebuffer(context, m_buffer);
 
         // draw shadow map
+        m_buffer.SetGlobalTexture(ShaderPropertyID.shadowRampMapID, shadowSettings.shadowRampMap);
         mainLightShadowCasterPass.Setup(cullingResults);
         mainLightShadowCasterPass.Render(context);
 
@@ -127,27 +128,20 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
     
         // screen space shadows
         screenSpaceShadows.RenderScreenSpaceShadows(context, m_screenSpaceShaodwHandle);
+        screenSpaceShadows.GaussianBlur(context, camera, m_screenSpaceShaodwHandle);
 
         // lighting computation & skybox
         context.SetupCameraProperties(camera);
         deferredLightingComputation.LightingComputation(context, camera, m_ScreenSource, m_quadDepth);
-        //Executebuffer(context, m_buffer);
-        // draw skybox
-        //context.SetupCameraProperties(camera);
-        //context.DrawSkybox(camera);
 
-        //deferredLightingComputation.copyCameraToTexture(context, camera);
-        deferredLightingComputation.copyToCamera(context, m_ScreenSource);
         // draw Gizmos
         DrawGizmosBeforePP(context, camera);
-
-        
-        //if (postProcessingStack.IsActive)
-		//	postProcessingStack.Render(context, ShaderPropertyID.screenSourceID, m_bloomTexture);
-
         DrawGizmosAfterPP(context, camera);
-
-
+        
+        if (postProcessingStack.IsActive)
+        {
+            postProcessingStack.Render_Deferred(context, m_ScreenSource, m_bloomTexture);
+        }
 
         m_buffer.EndSample(sampleName);
         Executebuffer(context, m_buffer);
@@ -172,8 +166,7 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
         m_buffer.SetGlobalMatrix(ShaderPropertyID.inverseViewAndProjectionMatrixID, inv_VPMatrix);
     }
 
-//inv_ProjectionMatrix = Matrix4x4.Inverse(GL.GetGPUProjectionMatrix(camera.projectionMatrix, false));
-//VP_Matrix = camera.worldToCameraMatrix * GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+
     private bool Cull(ScriptableRenderContext context, Camera camera, float maxShadowDistance)
     {
 		if (camera.TryGetCullingParameters(out ScriptableCullingParameters cullingParams))
@@ -241,7 +234,7 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
     private void InitScreenSpaceStuffs()
     {
         m_ScreenSource = RTHandles.Alloc
-        (Vector2.one, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, filterMode: FilterMode.Bilinear, dimension: TextureDimension.Tex2D, name: m_screenSourceName);
+        (Vector2.one, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, filterMode: FilterMode.Bilinear, dimension: TextureDimension.Tex2D, name: m_screenSourceName);
         m_buffer.SetGlobalTexture(ShaderPropertyID.screenSourceID, BuiltinRenderTextureType.CameraTarget);
 
         // screen spece shadows
@@ -251,11 +244,15 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
 
         // bloom temp texture
         m_bloomTexture = RTHandles.Alloc
-        (Vector2.one, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, filterMode: FilterMode.Bilinear, dimension: TextureDimension.Tex2D, name: m_bloomTextureName);
+        (Vector2.one, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, filterMode: FilterMode.Bilinear, dimension: TextureDimension.Tex2D, name: m_bloomTextureName);
         m_buffer.SetGlobalTexture(ShaderPropertyID.bloomTextureID, m_bloomTexture);
 
         m_quadDepth = RTHandles.Alloc(Vector2.one, colorFormat: GraphicsFormat.R32_SFloat, depthBufferBits: DepthBits.Depth32, dimension: TextureDimension.Tex2D, name: "Quad Depth");
         m_buffer.SetGlobalTexture("_QuadDepth", m_quadDepth);
+
+        float width = m_ScreenSource.rt.width;
+        float height = m_ScreenSource.rt.height;
+        m_buffer.SetGlobalVector(ShaderPropertyID.sourceSizeID, new Vector4(width, height, 1.0f / width, 1.0f / height));
     }
 
 

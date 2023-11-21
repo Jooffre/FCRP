@@ -18,7 +18,12 @@ namespace Firecrest
         dirLightCountID = Shader.PropertyToID("_DirectionalLightCount"),
         dirLightsColorID = Shader.PropertyToID("_DirectionalLightsColor"),
         dirLightsDirectionID = Shader.PropertyToID("_DirectionalLightsDirection"),
-        dirLightsShadowDataID = Shader.PropertyToID("_DirectionalLightsShadowData");
+        dirLightsShadowDataID = Shader.PropertyToID("_DirectionalLightsShadowData"),
+        optionalLightCountID = Shader.PropertyToID("_OptionalLightCount"),
+        optionalLightColorID = Shader.PropertyToID("_OptionalLightColor"),
+        optionalLightDirectionID = Shader.PropertyToID("_OptionalLightDirection"),
+        optionalLightPositionID = Shader.PropertyToID("_OptionalLightPosition"),
+        optionalSpotLightAngleID = Shader.PropertyToID("_OptionalSpotLightAngle");
 
         // Shadows
         public static readonly int
@@ -32,20 +37,24 @@ namespace Firecrest
         shadowFadingDataID = Shader.PropertyToID("_ShadowFadingData"),
         lightDirectionID = Shader.PropertyToID("_LightDirection"),
 
+        shadowRampMapID = Shader.PropertyToID("_ShadowRampMap"),
+
         cascadeCountID = Shader.PropertyToID("_CascadeCount"),
         cascadeShadowSplitSpheresID = Shader.PropertyToID("_CascadeShadowSplitSpheres"),
         cascadeShadowSplitSphereRadiiID = Shader.PropertyToID("_CascadeShadowSplitSphereRadii"),
+        cascadeZDistanceID = Shader.PropertyToID("_CascadeZDistance");
         
-        shadowOffset0ID = Shader.PropertyToID("_MainLightShadowOffset0"),
-        shadowOffset1ID = Shader.PropertyToID("_MainLightShadowOffset1"),
-        shadowOffset2ID = Shader.PropertyToID("_MainLightShadowOffset2"),
-        shadowOffset3ID = Shader.PropertyToID("_MainLightShadowOffset3"),
-        shadowmapSizeID = Shader.PropertyToID("_MainLightShadowmapSize");
+        // shadowOffset0ID = Shader.PropertyToID("_MainLightShadowOffset0"),
+        // shadowOffset1ID = Shader.PropertyToID("_MainLightShadowOffset1"),
+        // shadowOffset2ID = Shader.PropertyToID("_MainLightShadowOffset2"),
+        // shadowOffset3ID = Shader.PropertyToID("_MainLightShadowOffset3"),
+        // shadowmapSizeID = Shader.PropertyToID("_MainLightShadowmapSize");
 
 
         // Post Processing
         public static readonly int
         screenSourceID = Shader.PropertyToID("_ScreenSoureImage"),
+        sourceSizeID = Shader.PropertyToID("_SourceSize"),
 
         bloomTextureID = Shader.PropertyToID("_BloomTexture"),
         bloomCacheID = Shader.PropertyToID("_BloomCache"),

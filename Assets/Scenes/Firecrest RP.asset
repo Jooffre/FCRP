@@ -13,13 +13,14 @@ MonoBehaviour:
   m_Name: Firecrest RP
   m_EditorClassIdentifier: 
   rendering:
-    renderingPath: 1
+    renderingPath: 0
   useDynamicBatching: 1
   useGPUInstancing: 1
   useSRPBatcher: 0
   shadowSettings:
     maxDistance: 50
     distanceFade: 0.1
+    shadowRampMap: {fileID: 2800000, guid: 4850d414196cccf40aed2b54f8161598, type: 3}
     directional:
       atlasSize: 1024
       filter: 3

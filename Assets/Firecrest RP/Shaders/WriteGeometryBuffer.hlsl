@@ -53,17 +53,6 @@ GBuffer SurfaceToGBuffer(Varyings input)
     float4 baseColor = GetBaseColor(input.uv);
     //float3 packedNormalWS = PackNormal(inputData.normalWS);
 
-    // Surface surface;
-    // surface.color = baseColor.rgb;
-    // surface.position = input.positionWS;
-    // surface.metallic = GetMetallic(input.uv);
-    // surface.smoothness = GetSmoothness(input.uv);
-    // surface.normalWS = input.normalWS;
-    // surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
-    // surface.depth = -TransformWorldToView(input.positionWS).z;
-    // surface.alpha = baseColor.a;
-    // surface.dither = 0;
-
     SurfaceData surface;
 
     surface.color = baseColor.rgb;
@@ -71,6 +60,7 @@ GBuffer SurfaceToGBuffer(Varyings input)
     surface.metallic = 0.0;
     surface.smoothness = GetSmoothness(input.uv);
     surface.normalWS = input.normalWS; // can be packed later
+    surface.emission = GetEmission(input.uv);
     surface.alpha = 1.0;
 
     return EncodeSurfaceToGBuffer(surface);

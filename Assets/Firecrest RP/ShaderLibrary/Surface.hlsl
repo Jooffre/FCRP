@@ -22,7 +22,7 @@ struct SurfaceData
     float       metallic;
     float       smoothness;
     float3      normalWS;
-    //float3      emission;
+    float3      emission;
     //float       occlusion;
     float       alpha;
     //float       clearCoatMask;

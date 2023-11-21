@@ -68,7 +68,7 @@ float4 DeferredLightingFragment(Varyings input, out float depthOut : SV_Depth) :
 
     SurfaceData surface;
 
-    DecodeGBufferToSurface(surface, layer_0, layer_1, layer_2);
+    DecodeGBufferToSurface(surface, layer_0, layer_1, layer_2, layer_3);
 
     InputData inputData = InputDataFromGbufferAndWorldPosition(layer_1, positionWS);
 
@@ -76,7 +76,9 @@ float4 DeferredLightingFragment(Varyings input, out float depthOut : SV_Depth) :
     BRDFData brdfData = BRDFDataFromGbuffer(layer_0, layer_1, layer_2);
     float3 advColor = LightingPhysicallyBased(brdfData, advlight, inputData.normalWS, inputData.viewDirectionWS, false);
 
-    return float4(advColor, 1);
+    advColor += surface.emission;
+
+    return float4(advColor , 1);
 }
 
 #endif

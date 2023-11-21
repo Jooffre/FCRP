@@ -42,24 +42,64 @@ Varying SSSVertex(Attribute input)
     return output;
 }
 
-float4 SSSFragment(Varying input) : SV_Target
+float SSSFragment(Varying input) : SV_Target
 {
+    float softShadows = 0.0;
+
     float cameraDepth = SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, input.uv.xy);
 
     float3 positionWS = ComputeWorldSpacePosition(input.uv.xy, cameraDepth, unity_MatrixInvVP);
-    //float3 positionWS = ReconstructPositionWS(uv, cameraDepth);
+    // float3 positionWS = ReconstructPositionWS(uv, cameraDepth);
 
-    float4 shadowCoords = TransformWorldToShadowCoord(positionWS);
-    //half idx = VarifyCascadeIdx(positionWS);
+    int cascadeIndex = ComputeCascadeIndex(positionWS);
 
-    ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
-    half4 shadowParams = GetMainLightShadowParams();
+    float4 shadowCoords = TransformWorldToShadowCoord(positionWS, cascadeIndex);
+    // half idx = VarifyCascadeIdx(positionWS);
 
-    float shadow = SAMPLE_TEXTURE2D_SHADOW(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture, shadowCoords.xyz).x;
+    float shadow = SAMPLE_TEXTURE2D(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture, shadowCoords.xy).x;
+
+    float random = Random1D(positionWS.x + positionWS.y);
+    float2 shadowAtlasCoord = shadowCoords.xy * 2047;
+
+    // float shadowTest = ShadowEarlyTest(shadowCoords.z, shadowAtlasCoord, cascadeIndex);
     
-    return float4(SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoords, shadowSamplingData, shadowParams, false).xxx, 1);
-    //return float4(shadow.xxx,1);
-    //return float4(idx.xxx,1);
+    // if (shadowTest == 9)
+    // {
+    //     return 1.0;
+        
+    // }else if (shadowTest == 0)
+    // {
+    //     softShadows = 0.25;
+    //     return softShadows;
+    // }else
+    // {
+        float3 blocker = PCSS_GetBlockerDepth(positionWS, shadowCoords.z, shadowAtlasCoord, cascadeIndex);
+
+        float blockerDepthLS = blocker.x;
+        float blockerCount = blocker.y;
+
+        if (blockerCount < 1.0)
+        {
+            softShadows = 1.0;
+        }else
+        {
+            float penumbra = GetPenumbra(shadowCoords.z, blockerDepthLS, cascadeIndex);
+            float penumbraRange = GetPenumbraRange(penumbra, blocker.z, cascadeIndex);
+
+            softShadows = PCF_PoisonSamplingX64(shadowCoords.z + penumbraRange, shadowAtlasCoord, penumbra * 5, random);
+        }
+
+        return softShadows;
+    // }
+
+
+    // ===================================================================================================================
+
+    // built-in PCF sampling
+
+    //ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
+    //half4 shadowParams = GetMainLightShadowParams();
+    //return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoords, shadowSamplingData, shadowParams, false);
 }
 
 #endif

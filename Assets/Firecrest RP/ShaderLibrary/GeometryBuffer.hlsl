@@ -32,19 +32,20 @@ GBuffer EncodeSurfaceToGBuffer(SurfaceData surface)
     output.GBLayer_0 = float4(surface.color, 1.0);
     output.GBLayer_1 = float4(surface.normalWS, surface.smoothness);
     output.GBLayer_2 = float4(surface.specular, 1.0); // specular
-    output.GBLayer_3 = float4(0.0, 0.0, 0.0, 1.0);
+    output.GBLayer_3 = float4(surface.emission, 1.0);
 
     return output;
 }
 
 
-void DecodeGBufferToSurface(inout SurfaceData surface, float4 layer_0, float4 layer_1, float4 layer_2)
+void DecodeGBufferToSurface(inout SurfaceData surface, float4 layer_0, float4 layer_1, float4 layer_2, float4 layer_3)
 {
     surface.color = layer_0.rgb;
     surface.specular = layer_2.rgb;
     surface.metallic = 0;
     surface.smoothness = layer_1.w;
     surface.normalWS = layer_1.xyz;
+    surface.emission = layer_3.xyz;
     surface.alpha = 1;
 }
 

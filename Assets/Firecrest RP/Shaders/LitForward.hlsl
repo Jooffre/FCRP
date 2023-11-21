@@ -1,13 +1,13 @@
-#ifndef CUSTOM_LIT_FORWARD_INCLUDED
-#define CUSTOM_LIT_FORWARD_INCLUDED
+#ifndef FIRECREST_LIT_FORWARD_INCLUDED
+#define FIRECREST_LIT_FORWARD_INCLUDED
 
 
 #include "../ShaderLibrary/Surface.hlsl"
 #include "../ShaderLibrary/Shadows.hlsl"
-#include "../ShaderLibrary/Light.hlsl"
+#include "../ShaderLibrary/Lighting/ComputeLight.hlsl"
 #include "../ShaderLibrary/BRDF.hlsl"
 #include "../ShaderLibrary/GI.hlsl"
-#include "../ShaderLibrary/Lighting.hlsl"
+#include "../ShaderLibrary/Lighting/Lighting.hlsl"
 
 
 struct Attributes

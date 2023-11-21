@@ -43,7 +43,10 @@ public class WriteGeometryBuffer
         {criteria = SortingCriteria.CommonOpaque};
 
         DrawingSettings drawingSettings = new DrawingSettings(gBufferPassID, sortingSettings)
-        { enableDynamicBatching = useDynamicBatching, enableInstancing = useGPUInstancing };
+        {
+            enableDynamicBatching = useDynamicBatching, enableInstancing = useGPUInstancing,
+            perObjectData = PerObjectData.LightProbe |  PerObjectData.ReflectionProbes
+        };
 
         FilteringSettings filteringSettings = new FilteringSettings(RenderQueueRange.opaque);
 

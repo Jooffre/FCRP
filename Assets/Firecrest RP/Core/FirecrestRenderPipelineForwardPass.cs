@@ -8,7 +8,7 @@ using UnityEngine.Experimental.Rendering;
 namespace Firecrest
 {
 
-public class FirecrestRenderPipelineForwardPass : RenderPipeline
+public partial class FirecrestRenderPipelineForwardPass : RenderPipeline
 {
     private CommandBuffer m_buffer;
     private CullingResults cullingResults;
@@ -73,6 +73,8 @@ public class FirecrestRenderPipelineForwardPass : RenderPipeline
 
         GraphicsSettings.useScriptableRenderPipelineBatching = batchingSettings[2];
         GraphicsSettings.lightsUseLinearIntensity = true;
+
+        InitializeForEditor();
     }
 
 
@@ -89,6 +91,7 @@ public class FirecrestRenderPipelineForwardPass : RenderPipeline
     {
         base.Dispose(disposing);
 
+        ResetDelegate();
         this.ClearRenderTextures();
 
         //Debug.Log("Deferred pass resources disposed.");
@@ -138,15 +141,23 @@ public class FirecrestRenderPipelineForwardPass : RenderPipeline
 
         Executebuffer(context, m_buffer);
 
-         // draw opaque
+        // draw opaque
         SortingSettings sortingSettings = new SortingSettings(camera)
         {criteria = SortingCriteria.CommonOpaque};
         // draw unlit
         DrawingSettings drawingSettings = new DrawingSettings(unlitShaderTagId, sortingSettings)
         {
-            enableDynamicBatching = batchingSettings[0], enableInstancing = batchingSettings[1],
+            enableDynamicBatching = batchingSettings[0],
+            enableInstancing = batchingSettings[1],
+            
             // to pass the lightmap and lightprobes (LPPV) data to GPU
-            perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume
+            perObjectData =
+                PerObjectData.Lightmaps |
+                PerObjectData.LightProbe |
+                PerObjectData.LightProbeProxyVolume |
+                PerObjectData.ShadowMask |
+                PerObjectData.OcclusionProbe |
+                PerObjectData.OcclusionProbeProxyVolume
         };
 
         // draw forward lit

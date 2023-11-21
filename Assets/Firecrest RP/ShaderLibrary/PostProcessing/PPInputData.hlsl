@@ -19,14 +19,14 @@ float4 GetSource(float2 screenUV)
 	return SAMPLE_TEXTURE2D_LOD(_ScreenSoureImage, sampler_linear_clamp, screenUV, 0);
 }
 
-float4 GetBloomCache(float2 screenUV)
-{
-	return SAMPLE_TEXTURE2D_LOD(_BloomCache, sampler_linear_clamp, screenUV, 0);
-}
-
 float4 GetBloomTexture(float2 screenUV)
 {
 	return SAMPLE_TEXTURE2D_LOD(_BloomTexture, sampler_linear_clamp, screenUV, 0);
+}
+
+float4 GetBloomCache(float2 screenUV)
+{
+	return SAMPLE_TEXTURE2D_LOD(_BloomCache, sampler_linear_clamp, screenUV, 0);
 }
 
 float4 GetSourceTexelSize()

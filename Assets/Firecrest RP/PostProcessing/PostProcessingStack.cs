@@ -79,6 +79,31 @@ public partial class PostProcessingStack
         m_buffer.Clear();
 	}
 
+    public void Render_Deferred(ScriptableRenderContext context, RenderTargetIdentifier srcHandle, RenderTargetIdentifier bloomTexture)
+    {
+        m_buffer.SetGlobalTexture(ShaderPropertyID.screenSourceID, srcHandle);
+
+        SetupPostProcessing_Bloom(camera, srcHandle, bloomTexture);
+
+        SetupPostProcessing_ColorAdjustmentAndToneMapping();
+
+        m_buffer.SetRenderTarget(srcHandle, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+        m_buffer.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+        m_buffer.DrawMesh(m_canvas, Matrix4x4.identity, m_postProcessingMaterial, 0, 0);
+
+        //m_buffer.Blit(bloomTexture, BuiltinRenderTextureType.CameraTarget);
+
+        context.ExecuteCommandBuffer(m_buffer);
+        m_buffer.Clear();
+
+        m_buffer.SetRenderTarget(BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+        m_buffer.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+        m_buffer.DrawMesh(m_canvas, Matrix4x4.identity, m_postProcessingMaterial, 0, 1);
+
+        context.ExecuteCommandBuffer(m_buffer);
+        m_buffer.Clear();
+	}
+
 
 // =========================================================================================================
 
@@ -87,7 +112,7 @@ public partial class PostProcessingStack
     /// <summary>
     /// Post processing : Bloom.
     /// </summary>
-    public void SetupPostProcessing_Bloom(Camera camera, int inputRTID, RenderTargetIdentifier bloomTexture)
+    public void SetupPostProcessing_Bloom(Camera camera, RenderTargetIdentifier screenSourceImage, RenderTargetIdentifier bloomTexture)
     {
         // Bloom.shader passes
         // pass 0 - horizontal
@@ -103,8 +128,7 @@ public partial class PostProcessingStack
         // if we end up skipping bloomSettings entirely, we just perform a copy operation instead.
         if(bloomSettings.enableBloom == false || height < bloomSettings.minDownscalePixels * 2 || width < bloomSettings.minDownscalePixels * 2)//bloomSettings.intensity <= 0f // zero intensity
         {
-            m_buffer.Blit(inputRTID, bloomTexture);
-            
+            m_buffer.Blit(screenSourceImage, bloomTexture);
             return;
         }
 
@@ -121,7 +145,8 @@ public partial class PostProcessingStack
 		RenderTextureFormat format = RenderTextureFormat.DefaultHDR;
         m_buffer.GetTemporaryRT(ShaderPropertyID.bloomPrefilterID, width, height, 0, FilterMode.Bilinear, format);
        
-        Draw(m_buffer, ShaderPropertyID.bloomCacheID, inputRTID, ShaderPropertyID.bloomPrefilterID, bloomMaterial, bloomSettings.fadeFireflies? 5 : 4);
+        Draw(m_buffer, ShaderPropertyID.bloomCacheID, screenSourceImage, ShaderPropertyID.bloomPrefilterID, bloomMaterial, bloomSettings.fadeFireflies? 5 : 4);
+
 		width /= 2;
 		height /= 2;
 

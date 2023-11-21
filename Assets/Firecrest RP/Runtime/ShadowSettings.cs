@@ -12,6 +12,7 @@ public class ShadowSettings
     // max distance for shadow rendering
     [Min(0.001f)] public float maxDistance = 100f;
 	[Range(0.001f, 1f)]public float distanceFade = 0.1f;
+	public Texture2D shadowRampMap;
 
     // size of shadow map
     public enum TextureSize

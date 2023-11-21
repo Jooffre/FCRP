@@ -15,7 +15,6 @@ public class Utils
     {
         buffer.SetGlobalTexture(tempTexName, src);
 		buffer.SetRenderTarget(dst, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-
         buffer.DrawProcedural
         (Matrix4x4.identity, material, pass, MeshTopology.Triangles, 3);
     }
