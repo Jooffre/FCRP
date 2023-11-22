@@ -60,8 +60,8 @@ CBUFFER_END
 
 struct ShadowMask
 {
-    bool        always;     // always mode
-    bool        distance;   // distance mode
+    bool        always;     // default shadowmask
+    bool        distance;   // distance shadowmask
     float4      shadows;
 };
 
@@ -248,6 +248,7 @@ float GetRealtimeShadowAttenuation(DirectionalShadowData dirShadowData, ShadowDa
     return shadow;
 }
 
+// returning the corresponding attenuation given the shadow mask
 float GetBakedShadowAttenuation(ShadowMask mask, int channel)
 {
     float shadow = 1.0;
@@ -262,7 +263,7 @@ float GetBakedShadowAttenuation(ShadowMask mask, int channel)
     return shadow;
 }
 
-// variant
+// a variant that controls baked shadow by shadow strength
 float GetBakedShadowAttenuation(ShadowMask mask, int channel, float strength)
 {
     if (mask.always || mask.distance)
@@ -281,6 +282,7 @@ float MixBakedAndRealtimeShadows(ShadowData shadowData, float shadow, int shadow
     {
 		shadow = lerp(1.0, shadow, shadowData.strength);
 		shadow = min(bakedShadow, shadow);
+
 		return lerp(1.0, shadow, strength);
     }
 

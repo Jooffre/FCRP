@@ -37,6 +37,8 @@ TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
 SAMPLER(samplerunity_ProbeVolumeSH);
 
 // --------------------------------------------------
+// shadow mask can be also considered as a part of the baked lighting data of the scene
+// so we add this field to the struct GI
 struct GI
 {
     float3      diffuse;
@@ -132,7 +134,7 @@ float3 SampleLightProbe (Surface surfaceWS)
 GI GetGI(float2 lightMapUV, Surface surfaceWS)
 {
     GI gi;
-    
+
     gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
     gi.shadowMask.always = false;
     gi.shadowMask.distance = false;
@@ -144,7 +146,6 @@ GI GetGI(float2 lightMapUV, Surface surfaceWS)
 #elif defined(_SHADOW_MASK_DISTANCE)
     gi.shadowMask.distance = true;
     gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-
 # endif
 
     return gi;
