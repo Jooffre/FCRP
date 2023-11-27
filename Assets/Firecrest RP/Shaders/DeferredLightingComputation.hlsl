@@ -2,7 +2,7 @@
 #define FIRECREST_DEFERRED_LIGHTING_COMPUTATION_INCLUDED
 
 
-#include "../ShaderLibrary/Common.hlsl"
+#include "../ShaderLibrary/Core/Common.hlsl"
 #include "../ShaderLibrary/SpaceTransform.hlsl"
 #include "../ShaderLibrary/Surface.hlsl"
 #include "../ShaderLibrary/Shadows.hlsl"

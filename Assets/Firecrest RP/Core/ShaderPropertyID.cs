@@ -23,7 +23,8 @@ namespace Firecrest
         optionalLightColorID = Shader.PropertyToID("_OptionalLightColor"),
         optionalLightDirectionID = Shader.PropertyToID("_OptionalLightDirection"),
         optionalLightPositionID = Shader.PropertyToID("_OptionalLightPosition"),
-        optionalSpotLightAngleID = Shader.PropertyToID("_OptionalSpotLightAngle");
+        optionalSpotLightAngleID = Shader.PropertyToID("_OptionalSpotLightAngle"),
+        optionalLightShadowDataID = Shader.PropertyToID("_OptionalLightShadowData");
 
         // Shadows
         public static readonly int

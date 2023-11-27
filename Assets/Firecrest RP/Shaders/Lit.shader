@@ -42,7 +42,7 @@ Shader "Firecrest RP/Lit"
     {
         HLSLINCLUDE
 
-		#include "../ShaderLibrary/Common.hlsl"
+		#include "../ShaderLibrary/Core/Common.hlsl"
 		#include "../ShaderLibrary/LitInput.hlsl"
 		
         ENDHLSL
@@ -62,6 +62,7 @@ Shader "Firecrest RP/Lit"
 
             #pragma multi_compile_instancing
             #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ _LIGHTS_PER_OBJECT
             #pragma multi_compile _ _SHADOW_MASK_DEFAULT _SHADOW_MASK_DISTANCE
             #pragma multi_compile _ _DIRECTIONAL_PCF3 _DIRECTIONAL_PCF5 _DIRECTIONAL_PCF7
 

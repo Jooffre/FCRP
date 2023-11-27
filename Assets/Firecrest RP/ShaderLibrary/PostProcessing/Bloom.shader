@@ -11,7 +11,7 @@ Shader "Hidden/Firecrest RP/Bloom"
 		
 		HLSLINCLUDE
 
-		#include "../../ShaderLibrary/Common.hlsl"
+		#include "../../ShaderLibrary/Core/Common.hlsl"
 		#include "Bloom.hlsl"
 		
         ENDHLSL

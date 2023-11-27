@@ -16,6 +16,7 @@ public partial class FirecrestRenderPipelineForwardPass : RenderPipeline
 
     // [useDynamicBatching, useGPUInstancing, useSRPBatcher]
     private bool[] m_batchingSettings;
+    private bool m_useLightPerObject;
     private ShadowSettings m_shadowSettings;
     private PostProcessingSettings m_postProcessingSettings;
 
@@ -53,10 +54,16 @@ public partial class FirecrestRenderPipelineForwardPass : RenderPipeline
     };
 
 
-    public FirecrestRenderPipelineForwardPass(bool[] batchingSettings, ShadowSettings shadowSettings, PostProcessingSettings postProcessingSettings)
-    {
+    public FirecrestRenderPipelineForwardPass
+    (
+        bool[] batchingSettings,
+        bool ifUseLightPerObject,
+        ShadowSettings shadowSettings,
+        PostProcessingSettings postProcessingSettings
+    ){
         this.m_buffer = new CommandBuffer();
         this.m_batchingSettings = new bool[] {batchingSettings[0], batchingSettings[1]};
+        this.m_useLightPerObject = ifUseLightPerObject;
         this.m_shadowSettings = shadowSettings;
         this.m_postProcessingSettings = postProcessingSettings;
 
@@ -74,7 +81,7 @@ public partial class FirecrestRenderPipelineForwardPass : RenderPipeline
         GraphicsSettings.useScriptableRenderPipelineBatching = batchingSettings[2];
         GraphicsSettings.lightsUseLinearIntensity = true;
 
-        InitializeForEditor();
+        InitDifferentLightFallOffForEditor();
     }
 
 
@@ -98,8 +105,13 @@ public partial class FirecrestRenderPipelineForwardPass : RenderPipeline
     }
 
 
-    private void ForwardPassMain(ScriptableRenderContext context, Camera camera, bool[] batchingSettings, ShadowSettings shadowSettings)
-    {
+    private void ForwardPassMain
+    (
+        ScriptableRenderContext context,
+        Camera camera,
+        bool[] batchingSettings,
+        ShadowSettings shadowSettings
+    ){
         PrepareBufferName(m_buffer, camera.name, ref sampleName, " - Forward");
         PrepareWorldUIForSceneWindow(camera);
 
@@ -109,7 +121,7 @@ public partial class FirecrestRenderPipelineForwardPass : RenderPipeline
         Executebuffer(context, m_buffer);
 
         // draw shadow map
-        lighting.Setup(context, cullingResults, shadowSettings);
+        lighting.Setup(context, cullingResults, shadowSettings, m_useLightPerObject);
 
         // prepare PP
         postProcessingStack.Setup(camera, m_postProcessingSettings);
@@ -141,6 +153,10 @@ public partial class FirecrestRenderPipelineForwardPass : RenderPipeline
 
         Executebuffer(context, m_buffer);
 
+        // light per object settings
+        PerObjectData lightsPerObjectFlags = m_useLightPerObject ?
+            PerObjectData.LightData | PerObjectData.LightIndices : PerObjectData.None;
+
         // draw opaque
         SortingSettings sortingSettings = new SortingSettings(camera)
         {criteria = SortingCriteria.CommonOpaque};
@@ -157,7 +173,8 @@ public partial class FirecrestRenderPipelineForwardPass : RenderPipeline
                 PerObjectData.LightProbeProxyVolume |
                 PerObjectData.ShadowMask |
                 PerObjectData.OcclusionProbe |
-                PerObjectData.OcclusionProbeProxyVolume
+                PerObjectData.OcclusionProbeProxyVolume |
+                lightsPerObjectFlags
         };
 
         // draw forward lit

@@ -23,7 +23,7 @@ Shader "Firecrest RP/Write Geometry Buffer"
 
         HLSLINCLUDE
 
-        #include "../ShaderLibrary/Common.hlsl"
+        #include "../ShaderLibrary/Core/Common.hlsl"
         #include "../ShaderLibrary/LitInput.hlsl"
 
         ENDHLSL

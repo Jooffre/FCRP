@@ -2,7 +2,7 @@ Shader "Hidden/Firecrest RP/Post Processing Stack"
 {
     HLSLINCLUDE
     
-    #include "../../ShaderLibrary/Common.hlsl"
+    #include "../../ShaderLibrary/Core/Common.hlsl"
     #include "PPInputData.hlsl"
     #include "ColorAdjustment.hlsl"
     #include "ToneMapping.hlsl"

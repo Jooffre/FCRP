@@ -355,14 +355,13 @@ public class ForwardShadows
     /// <para>To reserve space in the shadow atlas for the light's shadow map,
     /// and store the information needed to render them.</para>
     /// </summary>
-    public Vector4 ReserveDirectionalShadows (Light light, int visibleLightIndex)
+    public Vector4 ReserveDirectionalShadows(Light light, int visibleLightIndex)
     {
         // record a light if
         //   - the configurated light < preseted max number
         //   - the light enables shadow casting and the shadow strength > 0
         //   - the light affects at least one shadow casting object in the Scene.
-        if
-        (
+        if(
             ShadowedDirectionalLightCount < maxShadowedDirectionalLightCount
             && light.shadows != LightShadows.None
             && light.shadowStrength > 0f
@@ -399,6 +398,26 @@ public class ForwardShadows
         }
         else
             return new Vector4(0f, 0f, 0f, -1f);
+    }
+
+
+    /// <summary>
+    /// <para>Execute per frame.</para>
+    /// <para>Applying the shadow mask for point and spot lights.</para>
+    /// </summary>
+    /// <param name="light"></param>
+    /// <param name="visibleLightIndex"></param>
+    /// <returns></returns>
+    public Vector4 ReserveOptionalLightShadows(Light light, int visibleLightIndex)
+    {
+        if (light.shadows != LightShadows.None && light.shadowStrength > 0f)
+        {
+            ShadowMaskIfnot(light);
+            
+            return new Vector4(light.shadowStrength, 0f, 0f, light.bakingOutput.occlusionMaskChannel);
+        }
+
+        return new Vector4(0f, 0f, 0f, -1f);
     }
     
 

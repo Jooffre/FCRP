@@ -4,7 +4,7 @@ Shader "Hidden/Firecrest RP/Copy With Depth"
     {
         HLSLINCLUDE
 
-        #include "../ShaderLibrary/Common.hlsl"
+        #include "../ShaderLibrary/Core/Common.hlsl"
         //#include "../ShaderLibrary/PostProcessing/FullScreen.hlsl"
         
         #pragma target 3.5

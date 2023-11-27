@@ -62,7 +62,7 @@ struct ShadowMask
 {
     bool        always;     // default shadowmask
     bool        distance;   // distance shadowmask
-    float4      shadows;
+    float4      maskValue;
 };
 
 struct ShadowData
@@ -81,6 +81,11 @@ struct DirectionalShadowData
     int         shadowMaskChannel;
 };
 
+struct OptionalLightShadowData
+{
+    float       strength;
+    int         shadowMaskChannel;
+};
 
 // --------------------------------------------------
 // methods from here
@@ -138,7 +143,7 @@ ShadowData GetShadowData(Surface surfaceWS)
 
     shadowData.shadowMask.always = false;
     shadowData.shadowMask.distance = false;
-    shadowData.shadowMask.shadows = 1.0;
+    shadowData.shadowMask.maskValue = 1.0;
 	
     return shadowData;
 }
@@ -187,7 +192,7 @@ ShadowData GetShadowData(float3 positionWS, float depth, float dither)
 
     shadowData.shadowMask.always = false;
     shadowData.shadowMask.distance = false;
-    shadowData.shadowMask.shadows = 1.0;
+    shadowData.shadowMask.maskValue = 1.0;
 	
     return shadowData;
 }
@@ -256,7 +261,7 @@ float GetBakedShadowAttenuation(ShadowMask mask, int channel)
     {
         if (channel >= 0)
         {
-            shadow = mask.shadows[channel];
+            shadow = mask.maskValue[channel];
         }
     }
 
@@ -316,6 +321,28 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData dirShadowData, Shado
         shadow = MixBakedAndRealtimeShadows(shadowData, shadow, dirShadowData.shadowMaskChannel, dirShadowData.strength);
     }
 
+    return shadow;
+}
+
+
+float GetOptionalLightShadowAttenuation(OptionalLightShadowData opShadowData, ShadowData shadowData, Surface surface)
+{
+
+# if !defined(_RECEIVE_SHADOWS)
+    return 1.0;
+# endif
+
+    float shadow;
+    
+    if (opShadowData.strength > 0)
+    {
+        shadow = GetBakedShadowAttenuation(shadowData.shadowMask, opShadowData.shadowMaskChannel, opShadowData.strength);
+    }
+    else
+    {
+        shadow = 1.0;
+    }
+    
     return shadow;
 }
 

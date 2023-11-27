@@ -8,7 +8,7 @@ Shader "Firecrest RP/ScreenSpaceShadows"
 
         HLSLINCLUDE
 
-        #include "../ShaderLibrary/Common.hlsl"
+        #include "../ShaderLibrary/Core/Common.hlsl"
         #include "../ShaderLibrary/SpaceTransform.hlsl"
         #include "../ShaderLibrary/LitInput.hlsl"
         #include "DeferredShadow.hlsl"

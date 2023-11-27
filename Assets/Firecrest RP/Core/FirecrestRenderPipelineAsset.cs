@@ -19,6 +19,9 @@ public class FirecrestRenderPipelineAsset : RenderPipelineAsset
     // SRP Setting
     [SerializeField] private bool useDynamicBatching = true, useGPUInstancing = true, useSRPBatcher = true;
 
+    // Light Per Object
+    [SerializeField] private bool useLightPerObject = true;
+
     // Shadow Setting
     [SerializeField] private ShadowSettings shadowSettings = default;
 
@@ -33,7 +36,7 @@ public class FirecrestRenderPipelineAsset : RenderPipelineAsset
         {
             Debug.Log("Switch to the Forward Pass");
             return new FirecrestRenderPipelineForwardPass
-            (new bool[] {useDynamicBatching, useGPUInstancing, useSRPBatcher}, shadowSettings, postProcessingSettings);
+            (new bool[] {useDynamicBatching, useGPUInstancing, useSRPBatcher}, useLightPerObject, shadowSettings, postProcessingSettings);
         }
         else
         {

@@ -11,7 +11,7 @@ Shader "Hidden/Custom RP/Post Processing Example"
 		
 		HLSLINCLUDE
 
-		#include "../../ShaderLibrary/Common.hlsl"
+		#include "../../ShaderLibrary/Core/Common.hlsl"
 		#include "PostProcessingExample.hlsl"
 		 
         ENDHLSL
