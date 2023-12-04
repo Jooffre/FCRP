@@ -13,6 +13,7 @@ namespace Firecrest
         viewAndProjectionMatrixID = Shader.PropertyToID("unity_MatrixVP"),
         inverseViewAndProjectionMatrixID = Shader.PropertyToID("unity_MatrixInvVP");
 
+
         // Lighting
         public static readonly int
         dirLightCountID = Shader.PropertyToID("_DirectionalLightCount"),
@@ -21,30 +22,43 @@ namespace Firecrest
         dirLightsShadowDataID = Shader.PropertyToID("_DirectionalLightsShadowData"),
         optionalLightCountID = Shader.PropertyToID("_OptionalLightCount"),
         optionalLightColorID = Shader.PropertyToID("_OptionalLightColor"),
-        optionalLightDirectionID = Shader.PropertyToID("_OptionalLightDirection"),
+        optionalSpotLightDirID = Shader.PropertyToID("_SpotLightDirection"),
         optionalLightPositionID = Shader.PropertyToID("_OptionalLightPosition"),
         optionalSpotLightAngleID = Shader.PropertyToID("_OptionalSpotLightAngle"),
         optionalLightShadowDataID = Shader.PropertyToID("_OptionalLightShadowData");
 
+
         // Shadows
         public static readonly int
+        shadowAtlasSizeID = Shader.PropertyToID("_ShadowAtlasSize"),
+        dirShadowAtlasID = Shader.PropertyToID("_DirectionalShadowAtlas"),
+        //optShadowAtlasID = Shader.PropertyToID("_OtherShadowAtlas"),
+        transformMatricesID = Shader.PropertyToID("_DirTransformMatrices"),
+        cascadeCountID = Shader.PropertyToID("_CascadeCount"),
+        cascadeCullingSpheresID = Shader.PropertyToID("_CascadeCullingSpheres"),
+        cascadeBiasDataID = Shader.PropertyToID("_CascadeData"),
+        shadowFadingDataID = Shader.PropertyToID("_ShadowFadingData"),
+        optShadowMatricesID = Shader.PropertyToID("_OptionalShadowMatrices"),
+        optionalShadowTilesID = Shader.PropertyToID("_OptionalShadowTiles"),
+        shadowPancakingID = Shader.PropertyToID("_ShadowPancaking"),
+
         cameraDepthID = Shader.PropertyToID("_CameraDepthTexture"),
         mainLightShadowmapID = Shader.PropertyToID("_MainLightShadowmapTexture"),
         worldToShadowMatID = Shader.PropertyToID("_MainLightWorldToShadow"),
 
         shadowParamsID = Shader.PropertyToID("_MainLightShadowParams"),
         shadowBiasID = Shader.PropertyToID("_ShadowBias"),
-        shadowCascadeBiasID = Shader.PropertyToID("_CascadeBiasData"),
-        shadowFadingDataID = Shader.PropertyToID("_ShadowFadingData"),
+        //shadowCascadeBiasID = Shader.PropertyToID("_CascadeBiasData"),
         lightDirectionID = Shader.PropertyToID("_LightDirection"),
 
         shadowRampMapID = Shader.PropertyToID("_ShadowRampMap"),
 
-        cascadeCountID = Shader.PropertyToID("_CascadeCount"),
+        
         cascadeShadowSplitSpheresID = Shader.PropertyToID("_CascadeShadowSplitSpheres"),
         cascadeShadowSplitSphereRadiiID = Shader.PropertyToID("_CascadeShadowSplitSphereRadii"),
         cascadeZDistanceID = Shader.PropertyToID("_CascadeZDistance");
-        
+    
+
         // shadowOffset0ID = Shader.PropertyToID("_MainLightShadowOffset0"),
         // shadowOffset1ID = Shader.PropertyToID("_MainLightShadowOffset1"),
         // shadowOffset2ID = Shader.PropertyToID("_MainLightShadowOffset2"),

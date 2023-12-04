@@ -48,12 +48,15 @@ Light GetDirectionalLight(int idx)
 }
 
 
-OptionalLightShadowData GetOptionalLightShadowData(int idx)
+OtherLightShadowData GetOptionalLightShadowData(int idx)
 {
-    OptionalLightShadowData data;
+    OtherLightShadowData data;
 
     data.strength = _OptionalLightShadowData[idx].x;
+    data.tileIndex = _OptionalLightShadowData[idx].y;
     data.shadowMaskChannel = _OptionalLightShadowData[idx].w;
+    data.lightPositionWS = 0.0;
+    data.spotDirectionWS = 0.0;
 
     return data;
 }
@@ -65,19 +68,24 @@ Light GetOptionalLight(int idx, Surface surfaceWS, ShadowData shadowData)
 
     light.color = _OptionalLightColor[idx].rgb;
 
-    float3 rayDir = _OptionalLightPosition[idx].xyz - surfaceWS.position;
+    float3 position = _OptionalLightPosition[idx].xyz;
+
+    float3 rayDir = position - surfaceWS.position;
     light.direction = normalize(rayDir);
 
     float distanceSqr = max(dot(rayDir, rayDir), 0.00001);
     float pointLightAttenuation = Square(saturate(1.0 - Square(distanceSqr *_OptionalLightPosition[idx].w)));
 
     float4 spotLightAngle = _OptionalSpotLightAngle[idx];
-    float spotLightAttenuation = 
-        Square(saturate(dot(_OptionalLightDirection[idx].xyz, light.direction)) * spotLightAngle.x + spotLightAngle.y);
 
-    OptionalLightShadowData optionalLightShadowData = GetOptionalLightShadowData(idx);
+    float3 spotDirection = _SpotLightDirection[idx].xyz;
+    float spotLightAttenuation = Square(saturate(dot(spotDirection, light.direction) * spotLightAngle.x + spotLightAngle.y));
 
-    light.attenuation = GetOptionalLightShadowAttenuation(optionalLightShadowData, shadowData, surfaceWS)
+    OtherLightShadowData optionalLightShadowData = GetOptionalLightShadowData(idx);
+    optionalLightShadowData.lightPositionWS = position;
+    optionalLightShadowData.spotDirectionWS = spotDirection;
+
+    light.attenuation = GetOptionalShadowAttenuation(optionalLightShadowData, shadowData, surfaceWS)
         * spotLightAttenuation * pointLightAttenuation / distanceSqr;
 
     return light;

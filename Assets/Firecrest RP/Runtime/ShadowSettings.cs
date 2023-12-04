@@ -14,6 +14,7 @@ public class ShadowSettings
 	[Range(0.001f, 1f)]public float distanceFade = 0.1f;
 	public Texture2D shadowRampMap;
 
+
     // size of shadow map
     public enum TextureSize
     {
@@ -21,12 +22,14 @@ public class ShadowSettings
 		_2048 = 2048, _4096 = 4096, _8192 = 8192
 	}
 
-
 	// PCF filtering
 	public enum FilterMode
 	{
 		PCF2x2, PCF3x3, PCF5x5, PCF7x7
 	}
+
+
+
 
 
 	// atlas params for directional light
@@ -51,16 +54,29 @@ public class ShadowSettings
 	}
 
 	// create an atlas setting instance
-	public Directional directional = new Directional
+	public Directional dirLightShadowAtlasSettings = new Directional
 	{
 		atlasSize = TextureSize._1024,
-		filter = FilterMode.PCF2x2,
+		filter = FilterMode.PCF5x5,
 		cascadeCount = 4,
 		cascadeRatio1 = 0.1f,
 		cascadeRatio2 = 0.25f,
 		cascadeRatio3 = 0.5f,
 		cascadeFade = 0.1f,
 		cascadeBlend = Directional.CascadeBlendMode.Soft
+	};
+
+	
+	[Serializable] public struct OtherLightShadowSettings
+	{
+		public TextureSize atlasSize;
+		public FilterMode filter; 
+	}
+
+	public OtherLightShadowSettings otherLightShadowSettings = new OtherLightShadowSettings
+	{
+		atlasSize = TextureSize._1024,
+		filter = FilterMode.PCF5x5
 	};
 }
 

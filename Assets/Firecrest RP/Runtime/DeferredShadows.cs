@@ -119,7 +119,7 @@ public class DeferredShadows
     /// </summary>
     private void RenderDirectionalShadows()
     {
-        int atlasSize = (int) settings.directional.atlasSize;
+        int atlasSize = (int) settings.dirLightShadowAtlasSettings.atlasSize;
         
         buffer.GetTemporaryRT
         (
@@ -164,15 +164,15 @@ public class DeferredShadows
         buffer.SetGlobalMatrixArray(transformMatricesId, transformWorldToShadowMatrices);
 
         //buffer.SetGlobalFloat(shadowDistanceId, settings.maxDistance);
-        float f = 1f - settings.directional.cascadeFade;
+        float f = 1f - settings.dirLightShadowAtlasSettings.cascadeFade;
         buffer.SetGlobalVector
         (
 			shadowFadingDataId,
 			new Vector4(1f / settings.maxDistance, 1f / settings.distanceFade, 1f / (1f - f * f), 0)
 		);
 
-        SetKeywords(directionalFilterKeywords, (int)settings.directional.filter - 1);
-        SetKeywords(cascadeBlendKeywords, (int)settings.directional.cascadeBlend - 1);
+        SetKeywords(directionalFilterKeywords, (int)settings.dirLightShadowAtlasSettings.filter - 1);
+        SetKeywords(cascadeBlendKeywords, (int)settings.dirLightShadowAtlasSettings.cascadeBlend - 1);
 
         buffer.SetGlobalVector(shadowAtlasSizeId, new Vector4(atlasSize, 1f / atlasSize));
 
@@ -198,7 +198,7 @@ public class DeferredShadows
         int cascadeCount = this.cascadeCount;
 		int tileOffset = idx * cascadeCount;
 		Vector2 ratios = new Vector2(0.3f, 0f);
-        float cullingFactor = Mathf.Max(0f, 0.8f - settings.directional.cascadeFade);
+        float cullingFactor = Mathf.Max(0f, 0.8f - settings.dirLightShadowAtlasSettings.cascadeFade);
 
         for (int i = 0; i < cascadeCount; i++)
         {
@@ -279,7 +279,7 @@ public class DeferredShadows
     {
         
         float texelSize = 2f * cullingSphere.w / tileSize;
-        float filterSize = texelSize * ((float)settings.directional.filter + 1f);
+        float filterSize = texelSize * ((float)settings.dirLightShadowAtlasSettings.filter + 1f);
         cullingSphere.w -= filterSize;
 		cullingSphere.w *= cullingSphere.w;
 		cascadeCullingSpheres[index] = cullingSphere;

@@ -3,7 +3,7 @@
 
 
 #include "../ShaderLibrary/Surface.hlsl"
-#include "../ShaderLibrary/Shadows.hlsl"
+#include "../ShaderLibrary/Shadow/Shadows.hlsl"
 #include "../ShaderLibrary/Lighting/ComputeLight.hlsl"
 #include "../ShaderLibrary/BRDF.hlsl"
 #include "../ShaderLibrary/GI.hlsl"

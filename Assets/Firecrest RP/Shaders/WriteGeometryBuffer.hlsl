@@ -3,7 +3,7 @@
 
 
 #include "../ShaderLibrary/Surface.hlsl"
-#include "../ShaderLibrary/Shadows.hlsl"
+#include "../ShaderLibrary/Shadow/Shadows.hlsl"
 #include "../ShaderLibrary/GeometryBuffer.hlsl"
 
 struct Attributes

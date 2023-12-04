@@ -1,4 +1,4 @@
-// Defining "Light" for this RP and necessary parameters connecting with c# scripts
+// Defining "Light" for this RP and necessary parameters connecting with c# scripts.
 
 #ifndef FIRECREST_LIGHTDATA_INCLUDED
 #define FIRECREST_LIGHTDATA_INCLUDED
@@ -16,7 +16,7 @@ CBUFFER_START(_CustomLight)
 
     int         _OptionalLightCount;
     float4      _OptionalLightColor[MAX_OPTIONAL_LIGHT_COUNT];
-    float4      _OptionalLightDirection[MAX_OPTIONAL_LIGHT_COUNT];
+    float4      _SpotLightDirection[MAX_OPTIONAL_LIGHT_COUNT];
     float4      _OptionalLightPosition[MAX_OPTIONAL_LIGHT_COUNT];
     float4      _OptionalSpotLightAngle[MAX_OPTIONAL_LIGHT_COUNT];
     float4      _OptionalLightShadowData[MAX_OPTIONAL_LIGHT_COUNT];

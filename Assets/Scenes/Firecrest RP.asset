@@ -17,11 +17,12 @@ MonoBehaviour:
   useDynamicBatching: 1
   useGPUInstancing: 1
   useSRPBatcher: 0
+  useLightPerObject: 1
   shadowSettings:
     maxDistance: 50
     distanceFade: 0.1
     shadowRampMap: {fileID: 2800000, guid: 4850d414196cccf40aed2b54f8161598, type: 3}
-    directional:
+    dirLightShadowAtlasSettings:
       atlasSize: 1024
       filter: 3
       cascadeCount: 4
@@ -30,4 +31,7 @@ MonoBehaviour:
       cascadeRatio3: 0.5
       cascadeFade: 0.1
       cascadeBlend: 1
+    otherLightShadowSettings:
+      atlasSize: 1024
+      filter: 3
   postProcessingSettings: {fileID: 11400000, guid: 9c281a54414feb147a41c480d943eab5, type: 2}

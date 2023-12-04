@@ -25,8 +25,8 @@ public class Lighting
 
     optionalLightColor = new Vector4[maxOptionalLightCount],
     optionalLightPosition = new Vector4[maxOptionalLightCount],
-    optionalLightDirection = new Vector4[maxOptionalLightCount],
-    optionalSpotLightAngle = new Vector4[maxOptionalLightCount],
+    spotLightDirection = new Vector4[maxOptionalLightCount],
+    spotLightAngles = new Vector4[maxOptionalLightCount],
     optionalLightShadowData = new Vector4[maxOptionalLightCount];
 
 
@@ -87,8 +87,8 @@ public class Lighting
         NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
 
         // use a loop traversing light sequence and initialize the data
-        int dirLightCount = 0, optionalLightCount = 0,
-        i;
+        int dirLightCount = 0, optionalLightCount = 0;
+        int i;
         for (i = 0; i < visibleLights.Length; i++)
         {
             int tempIdx = -1;
@@ -106,14 +106,14 @@ public class Lighting
             {
                 case LightType.Directional:
                     if (dirLightCount < maxDirLightCount)
-                        SetupDirectionalLight(dirLightCount++, ref visibleLight);
+                        SetupDirectionalLight(dirLightCount++, i, ref visibleLight);
                 break;
 
                 case LightType.Point:
                     if (optionalLightCount < maxOptionalLightCount)
                     {
                         tempIdx = optionalLightCount;
-                        SetupPointLight(optionalLightCount++, ref visibleLight);
+                        SetupPointLight(optionalLightCount++, i, ref visibleLight);
                     }
                 break;
 
@@ -121,7 +121,7 @@ public class Lighting
                     if (optionalLightCount < maxOptionalLightCount)
                     {
                         tempIdx = optionalLightCount;
-                        SetupSpotLight(optionalLightCount++, ref visibleLight);
+                        SetupSpotLight(optionalLightCount++, i, ref visibleLight);
                     }
                 break;
             }
@@ -163,14 +163,14 @@ public class Lighting
         {
             buffer.SetGlobalVectorArray(ShaderPropertyID.optionalLightColorID, optionalLightColor);
             buffer.SetGlobalVectorArray(ShaderPropertyID.optionalLightPositionID, optionalLightPosition);
-            buffer.SetGlobalVectorArray(ShaderPropertyID.optionalLightDirectionID, optionalLightDirection);
-            buffer.SetGlobalVectorArray(ShaderPropertyID.optionalSpotLightAngleID, optionalSpotLightAngle);
+            buffer.SetGlobalVectorArray(ShaderPropertyID.optionalSpotLightDirID, spotLightDirection);
+            buffer.SetGlobalVectorArray(ShaderPropertyID.optionalSpotLightAngleID, spotLightAngles);
             buffer.SetGlobalVectorArray(ShaderPropertyID.optionalLightShadowDataID, optionalLightShadowData);
         }
     }
 
 
-    #region Set up each light category
+    #region Setup each light category
 
     // For "localToWorldMatrix" :
     // Unity transform matrix following the order scale -> rotate -> translate,
@@ -179,7 +179,7 @@ public class Lighting
     // be thought as the position after translation and thus equivalents to the
     // world space position.
 
-    private void SetupDirectionalLight(int idx, ref VisibleLight visibleLight)
+    private void SetupDirectionalLight(int idx, int visibleLightIdx, ref VisibleLight visibleLight)
     {
         dirLightsColor[idx] = visibleLight.finalColor;
         
@@ -189,11 +189,11 @@ public class Lighting
         dirLightsDirection[idx] = -visibleLight.localToWorldMatrix.GetColumn(2);
 
         // Vec4 (shadow strength, start index per light, normal bias, light index)
-        dirLightsShadowData[idx] = shadows.ReserveDirectionalShadows(visibleLight.light, idx);
+        dirLightsShadowData[idx] = shadows.RecordDirectionalShadowData(visibleLight.light, visibleLightIdx);
     }
 
 
-    private void SetupPointLight(int idx, ref VisibleLight visibleLight)
+    private void SetupPointLight(int idx, int visibleLightIdx, ref VisibleLight visibleLight)
     {
         Light light = visibleLight.light;
 
@@ -205,19 +205,19 @@ public class Lighting
         position.w = 1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
         optionalLightPosition[idx] = position;
 
-        optionalSpotLightAngle[idx] = new Vector4(0f, 1f);
+        spotLightAngles[idx] = new Vector4(0f, 1f);
 
-        optionalLightShadowData[idx] = shadows.ReserveOptionalLightShadows(light, idx);
+        optionalLightShadowData[idx] = shadows.RecordOtherLightShadowData(light, visibleLightIdx);
     }
 
 
-    private void SetupSpotLight(int idx, ref VisibleLight visibleLight)
+    private void SetupSpotLight(int idx, int visibleLightIdx, ref VisibleLight visibleLight)
     {
         Light light = visibleLight.light;
 
         optionalLightColor[idx] = visibleLight.finalColor;
 
-        optionalLightDirection[idx] = -visibleLight.localToWorldMatrix.GetColumn(2);
+        spotLightDirection[idx] = -visibleLight.localToWorldMatrix.GetColumn(2);
 
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
 
@@ -225,12 +225,11 @@ public class Lighting
         optionalLightPosition[idx] = position;
 
         float innerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * light.innerSpotAngle);
-        float outerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * visibleLight.spotAngle);
-        float angleRangeInv = 1f / Mathf.Max(innerCos - outerCos, 0.001f);
+		float outerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * visibleLight.spotAngle);
+		float angleRangeInv = 1f / Mathf.Max(innerCos - outerCos, 0.001f);
+		spotLightAngles[idx] = new Vector4(angleRangeInv, -outerCos * angleRangeInv, 0);
 
-        optionalSpotLightAngle[idx] = new Vector4(angleRangeInv, -outerCos * angleRangeInv);
-
-        optionalLightShadowData[idx] = shadows.ReserveOptionalLightShadows(light, idx);
+        optionalLightShadowData[idx] = shadows.RecordOtherLightShadowData(light, visibleLightIdx);
     }
 
 

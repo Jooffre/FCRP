@@ -53,7 +53,7 @@ float3 GetLighting(Surface surfaceWS, BRDF brdf, GI gi)
 	return color;
 }
 
-
+/*
 // without GI
 float3 GetLighting(Surface surfaceWS, BRDF brdf)
 {
@@ -86,6 +86,6 @@ float3 GetLighting(Surface surfaceWS, BRDF brdf)
 
 	return color;
 }
-
+*/
 
 #endif
