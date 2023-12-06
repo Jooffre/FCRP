@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using PID = Firecrest.ShaderPropertyID;
 
 
 namespace Firecrest
@@ -10,7 +11,7 @@ namespace Firecrest
 
 public class ForwardShadows
 {
-    // support 4 directional light with shadows
+    // support up to 4 directional lights & 16 other types of lights with shadows
     const int maxShadowedDirLightCount = 4, maxShadowedOtherLightCount = 16;
     const int maxCascades = 4;
 
@@ -45,10 +46,6 @@ public class ForwardShadows
         "_SHADOW_MASK_DISTANCE"
     };
 
-    static int 
-    otherShadowAtlasID = Shader.PropertyToID("_OtherShadowAtlas"),
-    otherShadowMatricesID = Shader.PropertyToID("_OtherShadowMatrices"),
-    otherShadowTilesID = Shader.PropertyToID("_OtherShadowTiles");
 
     private bool useShadowMask;
 
@@ -85,7 +82,7 @@ public class ForwardShadows
 		public float normalBias;
 	}
 
-    // arrays to store lights
+    // arrays to store light data
 	ShadowedDirectionalLight[] shadowedDirectionalLights = new ShadowedDirectionalLight[maxShadowedDirLightCount];
     ShadowedOtherLight[] shadowedOtherLights = new ShadowedOtherLight[maxShadowedOtherLightCount];
 
@@ -120,12 +117,11 @@ public class ForwardShadows
     {
         if (shadowedDirLightCount > 0)
             RenderDirectionalShadows();
-        else
+        else // when there's no shadow to shade, create a 1x1 atlas
         {
-            // when there's no shadow to shade, create a 1x1 atlas
             buffer.GetTemporaryRT
             (
-				ShaderPropertyID.dirShadowAtlasID,
+				PID.dirShadowAtlasID,
                 1, 1, depthBuffer: 32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap
 			);
         }
@@ -133,25 +129,25 @@ public class ForwardShadows
         if (shadowedOtherLightCount > 0)
 			RenderOtherShadows();
 		else
-			buffer.SetGlobalTexture(otherShadowAtlasID, ShaderPropertyID.dirShadowAtlasID);
+			buffer.SetGlobalTexture(PID.otherShadowAtlasID, PID.dirShadowAtlasID);
 
 
-        // shadow mask is not realtime, we have to set the keywords anyway.
         buffer.BeginSample(bufferName);
 
+        // set the shadow mask keywords anyway
         SetKeywords(shadowMaskKeywords, 
                         /* mark: the following statement = (true, true) : (true, false) : (false, -) */
                         useShadowMask ? QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 
                             0 : 1 : -1);
 
-        buffer.SetGlobalInt(ShaderPropertyID.cascadeCountID,
+        buffer.SetGlobalInt(PID.cascadeCountID,
             shadowedDirLightCount > 0 ? settings.dirLightShadowAtlasSettings.cascadeCount : 0);
 
         float f = 1f - settings.dirLightShadowAtlasSettings.cascadeFade;
-        buffer.SetGlobalVector(ShaderPropertyID.shadowFadingDataID,
+        buffer.SetGlobalVector(PID.shadowFadingDataID,
             new Vector4(1f / settings.maxDistance, 1f / settings.distanceFade, 1f / (1f - f * f), 0));
 
-        buffer.SetGlobalVector(ShaderPropertyID.shadowAtlasSizeID, atlasSizes);
+        buffer.SetGlobalVector(PID.shadowAtlasSizeID, atlasSizes);
 
         buffer.EndSample(bufferName);
         ExecuteBuffer();
@@ -168,21 +164,21 @@ public class ForwardShadows
         
         buffer.GetTemporaryRT
         (
-            ShaderPropertyID.dirShadowAtlasID,
+            PID.dirShadowAtlasID,
             atlasSize, atlasSize, depthBuffer: 32,
             FilterMode.Bilinear, RenderTextureFormat.Shadowmap
         );
-        buffer.SetRenderTarget  // tells GPU the operation target is that RT
+        buffer.SetRenderTarget
         (
-            ShaderPropertyID.dirShadowAtlasID,
+            PID.dirShadowAtlasID,
             RenderBufferLoadAction.DontCare,    // ignore the exisiting contents of the render buffer
-            RenderBufferStoreAction.Store   // store to RAM so that we could reuse it later
+            RenderBufferStoreAction.Store       // store to RAM so that we could reuse it later
         );
 
         // clear the DepthBuffer with Color.clear, reverse the ColorBuffer
         buffer.ClearRenderTarget(true, false, Color.clear);
 
-        buffer.SetGlobalFloat(ShaderPropertyID.shadowPancakingID, 1f);
+        buffer.SetGlobalFloat(PID.shadowPancakingID, 1f);
         
         buffer.BeginSample(bufferName);
         ExecuteBuffer();
@@ -196,11 +192,11 @@ public class ForwardShadows
             RenderDirectionalShadow(i, split, tileSize);
         }
 
-		buffer.SetGlobalVectorArray(ShaderPropertyID.cascadeCullingSpheresID, cascadeCullingSpheres);
-        buffer.SetGlobalVectorArray(ShaderPropertyID.cascadeBiasDataID, cascadeBiasData);
+		buffer.SetGlobalVectorArray(PID.cascadeCullingSpheresID, cascadeCullingSpheres);
+        buffer.SetGlobalVectorArray(PID.cascadeBiasDataID, cascadeBiasData);
 
         // send the VP matrices array to the GPU
-        buffer.SetGlobalMatrixArray(ShaderPropertyID.transformMatricesID, dirShadowTransformMatrices);
+        buffer.SetGlobalMatrixArray(PID.dirTransformMatricesID, dirShadowTransformMatrices);
 
         //buffer.SetGlobalFloat(shadowDistanceId, settings.maxDistance);
 
@@ -316,20 +312,20 @@ public class ForwardShadows
         
         buffer.GetTemporaryRT
         (
-            otherShadowAtlasID,
+            PID.otherShadowAtlasID,
             atlasSize, atlasSize, depthBuffer: 32,
             FilterMode.Bilinear, RenderTextureFormat.Shadowmap
         );
         buffer.SetRenderTarget
         (
-            otherShadowAtlasID,
+            PID.otherShadowAtlasID,
             RenderBufferLoadAction.DontCare,
             RenderBufferStoreAction.Store
         );
 
         buffer.ClearRenderTarget(true, false, Color.clear);
 
-        buffer.SetGlobalFloat(ShaderPropertyID.shadowPancakingID, 0f);
+        buffer.SetGlobalFloat(PID.shadowPancakingID, 0f);
         
         buffer.BeginSample(bufferName);
         ExecuteBuffer();
@@ -343,8 +339,8 @@ public class ForwardShadows
             RenderSpotShadows(i, split, tileSize);
         }
 
-        buffer.SetGlobalMatrixArray(otherShadowMatricesID, otherShadowTransformMatrices);
-        buffer.SetGlobalVectorArray(otherShadowTilesID, otherShadowTiles);
+        buffer.SetGlobalMatrixArray(PID.otherShadowTransformMatricesID, otherShadowTransformMatrices);
+        buffer.SetGlobalVectorArray(PID.otherShadowTilesID, otherShadowTiles);
 
         SetKeywords(otherFilterKeywords, (int)settings.otherLightShadowSettings.filter - 1);
 
@@ -376,7 +372,8 @@ public class ForwardShadows
 		float tileScale = 1f / split;
         SetOtherTileData(index, offset, tileScale, bias);
 
-        otherShadowTransformMatrices[index] = ConvertToAtlasMatrix(
+        otherShadowTransformMatrices[index] = ConvertToAtlasMatrix
+        (
 			projectionMatrix * viewMatrix, offset, tileScale
 		);
 		
@@ -422,6 +419,7 @@ public class ForwardShadows
 		return m;
 	}
 
+
     /// <summary>
     /// Set the tile region that to be rendered.
     /// </summary>
@@ -436,10 +434,11 @@ public class ForwardShadows
 	}
 
 
-    private void SetOtherTileData (int index, Vector2 offset, float scale, float bias)
+    private void SetOtherTileData(int index, Vector2 offset, float scale, float bias)
     {
-		float border = atlasSizes.w * 0.5f;
-		Vector4 data;
+        Vector4 data;
+
+		float border = atlasSizes.w * 0.5f;		
 		data.x = offset.x * scale + border;
 		data.y = offset.y * scale + border;
 		data.z = scale - border - border;
@@ -518,7 +517,7 @@ public class ForwardShadows
 
     /// <summary>
     /// <para>Execute per frame.</para>
-    /// <para>Recording shadow data of optional lights if necessary. 
+    /// <para>Recording shadow data of other lights if necessary. 
     /// And applying the shadow mask for point and spot lights.</para>
     /// </summary>
     public Vector4 RecordOtherLightShadowData(Light light, int visibleLightIdx)
@@ -586,16 +585,13 @@ public class ForwardShadows
     }
 
 
-    /// <summary>
-    /// Release the temporary RT for shadow atlas.
-    /// </summary>
-    public void Cleanup()
+    public void CleanupShadowAtlasRT()
     {
-		buffer.ReleaseTemporaryRT(ShaderPropertyID.dirShadowAtlasID);
+		buffer.ReleaseTemporaryRT(PID.dirShadowAtlasID);
 
         if (shadowedOtherLightCount > 0)
         {
-			buffer.ReleaseTemporaryRT(otherShadowAtlasID);
+			buffer.ReleaseTemporaryRT(PID.otherShadowAtlasID);
 		}
 
 		ExecuteBuffer();

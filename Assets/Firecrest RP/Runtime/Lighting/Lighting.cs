@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using Unity.Collections;
+using PID = Firecrest.ShaderPropertyID;
 
 
 namespace Firecrest
@@ -15,7 +16,7 @@ public class Lighting
 
 
     private const int
-    maxDirLightCount = 4, maxOptionalLightCount = 64;
+    maxDirLightCount = 4, maxOtherLightCount = 64;
 
 
     private readonly Vector4[]
@@ -23,11 +24,11 @@ public class Lighting
     dirLightsDirection = new Vector4[maxDirLightCount],
     dirLightsShadowData = new Vector4[maxDirLightCount],
 
-    optionalLightColor = new Vector4[maxOptionalLightCount],
-    optionalLightPosition = new Vector4[maxOptionalLightCount],
-    spotLightDirection = new Vector4[maxOptionalLightCount],
-    spotLightAngles = new Vector4[maxOptionalLightCount],
-    optionalLightShadowData = new Vector4[maxOptionalLightCount];
+    otherLightColor = new Vector4[maxOtherLightCount],
+    otherLightPosition = new Vector4[maxOtherLightCount],
+    spotLightDirection = new Vector4[maxOtherLightCount],
+    spotLightAngles = new Vector4[maxOtherLightCount],
+    otherLightShadowData = new Vector4[maxOtherLightCount];
 
 
     private CullingResults cullingResults;
@@ -70,7 +71,7 @@ public class Lighting
     /// </summary> 
     public void Cleanup()
     {
-        shadows.Cleanup();
+        shadows.CleanupShadowAtlasRT();
     }
 
 
@@ -87,7 +88,7 @@ public class Lighting
         NativeArray<VisibleLight> visibleLights = cullingResults.visibleLights;
 
         // use a loop traversing light sequence and initialize the data
-        int dirLightCount = 0, optionalLightCount = 0;
+        int dirLightCount = 0, otherLightCount = 0;
         int i;
         for (i = 0; i < visibleLights.Length; i++)
         {
@@ -110,18 +111,18 @@ public class Lighting
                 break;
 
                 case LightType.Point:
-                    if (optionalLightCount < maxOptionalLightCount)
+                    if (otherLightCount < maxOtherLightCount)
                     {
-                        tempIdx = optionalLightCount;
-                        SetupPointLight(optionalLightCount++, i, ref visibleLight);
+                        tempIdx = otherLightCount;
+                        SetupPointLight(otherLightCount++, i, ref visibleLight);
                     }
                 break;
 
                 case LightType.Spot:
-                    if (optionalLightCount < maxOptionalLightCount)
+                    if (otherLightCount < maxOtherLightCount)
                     {
-                        tempIdx = optionalLightCount;
-                        SetupSpotLight(optionalLightCount++, i, ref visibleLight);
+                        tempIdx = otherLightCount;
+                        SetupSpotLight(otherLightCount++, i, ref visibleLight);
                     }
                 break;
             }
@@ -150,22 +151,22 @@ public class Lighting
 
 
         // send light data to GPU
-        buffer.SetGlobalInt(ShaderPropertyID.dirLightCountID, dirLightCount);
+        buffer.SetGlobalInt(PID.dirLightCountID, dirLightCount);
         if (dirLightCount > 0)
         {
-            buffer.SetGlobalVectorArray(ShaderPropertyID.dirLightsColorID, dirLightsColor);
-            buffer.SetGlobalVectorArray(ShaderPropertyID.dirLightsDirectionID, dirLightsDirection);
-            buffer.SetGlobalVectorArray(ShaderPropertyID.dirLightsShadowDataID, dirLightsShadowData);
+            buffer.SetGlobalVectorArray(PID.dirLightsColorID, dirLightsColor);
+            buffer.SetGlobalVectorArray(PID.dirLightsDirectionID, dirLightsDirection);
+            buffer.SetGlobalVectorArray(PID.dirLightsShadowDataID, dirLightsShadowData);
         }
 
-        buffer.SetGlobalInt(ShaderPropertyID.optionalLightCountID, optionalLightCount);
-        if (optionalLightCount > 0)
+        buffer.SetGlobalInt(PID.otherLightCountID, otherLightCount);
+        if (otherLightCount > 0)
         {
-            buffer.SetGlobalVectorArray(ShaderPropertyID.optionalLightColorID, optionalLightColor);
-            buffer.SetGlobalVectorArray(ShaderPropertyID.optionalLightPositionID, optionalLightPosition);
-            buffer.SetGlobalVectorArray(ShaderPropertyID.optionalSpotLightDirID, spotLightDirection);
-            buffer.SetGlobalVectorArray(ShaderPropertyID.optionalSpotLightAngleID, spotLightAngles);
-            buffer.SetGlobalVectorArray(ShaderPropertyID.optionalLightShadowDataID, optionalLightShadowData);
+            buffer.SetGlobalVectorArray(PID.otherLightColorID, otherLightColor);
+            buffer.SetGlobalVectorArray(PID.otherLightPositionID, otherLightPosition);
+            buffer.SetGlobalVectorArray(PID.spotLightDirID, spotLightDirection);
+            buffer.SetGlobalVectorArray(PID.spotLightAngleID, spotLightAngles);
+            buffer.SetGlobalVectorArray(PID.otherLightShadowDataID, otherLightShadowData);
         }
     }
 
@@ -197,17 +198,17 @@ public class Lighting
     {
         Light light = visibleLight.light;
 
-        optionalLightColor[idx] = visibleLight.finalColor;
+        otherLightColor[idx] = visibleLight.finalColor;
 
         // see the comments before for why we choose the last column
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
 
         position.w = 1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
-        optionalLightPosition[idx] = position;
+        otherLightPosition[idx] = position;
 
         spotLightAngles[idx] = new Vector4(0f, 1f);
 
-        optionalLightShadowData[idx] = shadows.RecordOtherLightShadowData(light, visibleLightIdx);
+        otherLightShadowData[idx] = shadows.RecordOtherLightShadowData(light, visibleLightIdx);
     }
 
 
@@ -215,21 +216,21 @@ public class Lighting
     {
         Light light = visibleLight.light;
 
-        optionalLightColor[idx] = visibleLight.finalColor;
+        otherLightColor[idx] = visibleLight.finalColor;
 
         spotLightDirection[idx] = -visibleLight.localToWorldMatrix.GetColumn(2);
 
         Vector4 position = visibleLight.localToWorldMatrix.GetColumn(3);
 
         position.w = 1f / Mathf.Max(visibleLight.range * visibleLight.range, 0.00001f);
-        optionalLightPosition[idx] = position;
+        otherLightPosition[idx] = position;
 
         float innerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * light.innerSpotAngle);
 		float outerCos = Mathf.Cos(Mathf.Deg2Rad * 0.5f * visibleLight.spotAngle);
 		float angleRangeInv = 1f / Mathf.Max(innerCos - outerCos, 0.001f);
 		spotLightAngles[idx] = new Vector4(angleRangeInv, -outerCos * angleRangeInv, 0);
 
-        optionalLightShadowData[idx] = shadows.RecordOtherLightShadowData(light, visibleLightIdx);
+        otherLightShadowData[idx] = shadows.RecordOtherLightShadowData(light, visibleLightIdx);
     }
 
 

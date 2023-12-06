@@ -23,7 +23,7 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
     private DeferredLighting m_lighting;
     private WriteGeometryBuffer geometryBuffer;
     private DeferredLightingComputation deferredLightingComputation;
-    private MainLightShadowCasterPass mainLightShadowCasterPass;
+    private DeferredShadows deferredShadows;
     private ScreenSpaceShadows screenSpaceShadows;
     private PostProcessingStack postProcessingStack;
 
@@ -66,7 +66,7 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
         this.m_lighting = new DeferredLighting();
         this.geometryBuffer = new WriteGeometryBuffer();
         this.deferredLightingComputation = new DeferredLightingComputation();
-        this.mainLightShadowCasterPass = new MainLightShadowCasterPass();
+        this.deferredShadows = new DeferredShadows();
         this.screenSpaceShadows = new ScreenSpaceShadows();
         this.postProcessingStack = new PostProcessingStack();
 
@@ -117,8 +117,8 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
 
         // draw shadow map
         m_buffer.SetGlobalTexture(ShaderPropertyID.shadowRampMapID, shadowSettings.shadowRampMap);
-        mainLightShadowCasterPass.Setup(cullingResults);
-        mainLightShadowCasterPass.Render(context);
+        deferredShadows.Setup(cullingResults);
+        deferredShadows.Render(context);
 
         // write G-buffers
         context.SetupCameraProperties(camera);

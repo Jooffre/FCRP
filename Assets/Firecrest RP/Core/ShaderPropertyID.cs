@@ -20,26 +20,26 @@ namespace Firecrest
         dirLightsColorID = Shader.PropertyToID("_DirectionalLightsColor"),
         dirLightsDirectionID = Shader.PropertyToID("_DirectionalLightsDirection"),
         dirLightsShadowDataID = Shader.PropertyToID("_DirectionalLightsShadowData"),
-        optionalLightCountID = Shader.PropertyToID("_OptionalLightCount"),
-        optionalLightColorID = Shader.PropertyToID("_OptionalLightColor"),
-        optionalSpotLightDirID = Shader.PropertyToID("_SpotLightDirection"),
-        optionalLightPositionID = Shader.PropertyToID("_OptionalLightPosition"),
-        optionalSpotLightAngleID = Shader.PropertyToID("_OptionalSpotLightAngle"),
-        optionalLightShadowDataID = Shader.PropertyToID("_OptionalLightShadowData");
+        otherLightCountID = Shader.PropertyToID("_OtherLightCount"),
+        otherLightColorID = Shader.PropertyToID("_OtherLightColor"),
+        otherLightPositionID = Shader.PropertyToID("_OtherLightPosition"),
+        otherLightShadowDataID = Shader.PropertyToID("_OtherLightShadowData"),
+        spotLightDirID = Shader.PropertyToID("_SpotLightDirection"),
+        spotLightAngleID = Shader.PropertyToID("_SpotLightAngle");
 
 
         // Shadows
         public static readonly int
         shadowAtlasSizeID = Shader.PropertyToID("_ShadowAtlasSize"),
         dirShadowAtlasID = Shader.PropertyToID("_DirectionalShadowAtlas"),
-        //optShadowAtlasID = Shader.PropertyToID("_OtherShadowAtlas"),
-        transformMatricesID = Shader.PropertyToID("_DirTransformMatrices"),
+        otherShadowAtlasID = Shader.PropertyToID("_OtherShadowAtlas"),
+        dirTransformMatricesID = Shader.PropertyToID("_DirShadowTransformMatrices"),
+        otherShadowTransformMatricesID = Shader.PropertyToID("_OtherShadowTransformMatrices"),
+        otherShadowTilesID = Shader.PropertyToID("_OtherShadowTiles"),
         cascadeCountID = Shader.PropertyToID("_CascadeCount"),
         cascadeCullingSpheresID = Shader.PropertyToID("_CascadeCullingSpheres"),
         cascadeBiasDataID = Shader.PropertyToID("_CascadeData"),
         shadowFadingDataID = Shader.PropertyToID("_ShadowFadingData"),
-        optShadowMatricesID = Shader.PropertyToID("_OptionalShadowMatrices"),
-        optionalShadowTilesID = Shader.PropertyToID("_OptionalShadowTiles"),
         shadowPancakingID = Shader.PropertyToID("_ShadowPancaking"),
 
         cameraDepthID = Shader.PropertyToID("_CameraDepthTexture"),
@@ -48,7 +48,6 @@ namespace Firecrest
 
         shadowParamsID = Shader.PropertyToID("_MainLightShadowParams"),
         shadowBiasID = Shader.PropertyToID("_ShadowBias"),
-        //shadowCascadeBiasID = Shader.PropertyToID("_CascadeBiasData"),
         lightDirectionID = Shader.PropertyToID("_LightDirection"),
 
         shadowRampMapID = Shader.PropertyToID("_ShadowRampMap"),

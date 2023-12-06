@@ -23,8 +23,6 @@ float3 GetLighting(Surface surfaceWS, BRDF brdf, GI gi)
     shadowData.shadowMask = gi.shadowMask;
 
     float3 color = gi.diffuse * brdf.diffuse;
-    // float3 color = 0;
-    // directional light + additional light
 
     for (int i = 0; i < _DirectionalLightCount; i++)
     {
@@ -38,13 +36,13 @@ float3 GetLighting(Surface surfaceWS, BRDF brdf, GI gi)
     for (int j = 0; j < min(8, unity_LightData.y); j++)
     {
         int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];
-        Light opLight = GetOptionalLight(lightIndex, surfaceWS, shadowData);
+        Light opLight = GetOtherLights(lightIndex, surfaceWS, shadowData);
         color += GetLighting(surfaceWS, brdf, opLight);
     }
 #else
-    for (int j = 0; j < _OptionalLightCount; j++)
+    for (int j = 0; j < _OtherLightCount; j++)
     {
-        Light opLight = GetOptionalLight(j, surfaceWS, shadowData);
+        Light opLight = GetOtherLights(j, surfaceWS, shadowData);
         color += GetLighting(surfaceWS, brdf, opLight);
     }
 
@@ -53,39 +51,5 @@ float3 GetLighting(Surface surfaceWS, BRDF brdf, GI gi)
 	return color;
 }
 
-/*
-// without GI
-float3 GetLighting(Surface surfaceWS, BRDF brdf)
-{
-    ShadowData shadowData = GetShadowData(surfaceWS);
-
-    float3 color = brdf.diffuse;
-
-    for (int i = 0; i < _DirectionalLightCount; i++)
-    {
-        Light dirLight = GetDirectionalLight(i, surfaceWS, shadowData);
-        color += GetLighting(surfaceWS, brdf, dirLight);
-    }
-
-#if defined(_LIGHTS_PER_OBJECT)
-
-    for (int j = 0; j < min(8, unity_LightData.y); j++)
-    {
-        int lightIndex = unity_LightIndices[(uint)j / 4][(uint)j % 4];
-        Light opLight = GetOptionalLight(lightIndex, surfaceWS, shadowData);
-        color += GetLighting(surfaceWS, brdf, opLight);
-    }
-#else
-    for (int j = 0; j < _OptionalLightCount; j++)
-    {
-        Light opLight = GetOptionalLight(j, surfaceWS, shadowData);
-        color += GetLighting(surfaceWS, brdf, opLight);
-    }
-
-#endif
-
-	return color;
-}
-*/
 
 #endif

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using PID = Firecrest.ShaderPropertyID;
 
 
 namespace Firecrest
@@ -182,11 +183,11 @@ public class ShadowUtils
 
     public static void SetupShadowCasterConstantBuffer(CommandBuffer buffer, ref VisibleLight shadowLight, Vector4 shadowBias)
     {
-        buffer.SetGlobalVector(ShaderPropertyID.shadowBiasID, shadowBias);
+        buffer.SetGlobalVector(PID.shadowBiasID, shadowBias);
 
         // Light direction is currently used in shadow caster pass to apply shadow normal offset (normal bias).
         Vector3 lightDirection = -shadowLight.localToWorldMatrix.GetColumn(2);
-        buffer.SetGlobalVector(ShaderPropertyID.lightDirectionID, new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
+        buffer.SetGlobalVector(PID.lightDirectionID, new Vector4(lightDirection.x, lightDirection.y, lightDirection.z, 0.0f));
 
         // For punctual lights, computing light direction at each vertex position provides more consistent results (shadow shape does not change when "rotating the point light" for example)
         //Vector3 lightPosition = shadowLight.localToWorldMatrix.GetColumn(3);
