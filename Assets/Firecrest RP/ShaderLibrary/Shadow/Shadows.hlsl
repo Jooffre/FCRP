@@ -99,10 +99,12 @@ struct DirectionalShadowData
 
 struct OtherLightShadowData
 {
+    bool        isPointLight;
     float       strength;
     int         tileIndex;
     int         shadowMaskChannel;
     float3      lightPositionWS;
+    float3      lightDirectionWS;
     float3      spotDirectionWS;
 };
 
@@ -374,10 +376,31 @@ float GetDirectionalShadowAttenuation(DirectionalShadowData dirShadowData, Shado
 
 // shadows of other lights
 
+static const float3 pointShadowPlanes[6] =
+{
+	float3(-1.0, 0.0, 0.0),
+	float3(1.0, 0.0, 0.0),
+	float3(0.0, -1.0, 0.0),
+	float3(0.0, 1.0, 0.0),
+	float3(0.0, 0.0, -1.0),
+	float3(0.0, 0.0, 1.0)
+};
+
 float GetOtherShadow(OtherLightShadowData other, ShadowData global, Surface surfaceWS)
 {
     float tileIndex = other.tileIndex;
     float3 lightPlane = other.spotDirectionWS;
+
+    if (other.isPointLight)
+    {
+        // the order of the cubemap faces is
+        // +X, −X, +Y, −Y, +Z, −Z,
+        // which matches how we rendered them
+        float faceOffset = CubeMapFaceID(-other.lightDirectionWS);
+        tileIndex += faceOffset;
+        lightPlane = pointShadowPlanes[faceOffset];
+    }
+
     float4 tileData = _OtherShadowTiles[tileIndex];
     float3 surfaceToLight = other.lightPositionWS - surfaceWS.position;
     float distanceToLightPlane = dot(surfaceToLight, lightPlane);
