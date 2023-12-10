@@ -11,7 +11,9 @@ namespace Firecrest
         viewMatrixID = Shader.PropertyToID("unity_MatrixV"),
         invViewMatrixID = Shader.PropertyToID("unity_MatrixInvV"),
         viewAndProjectionMatrixID = Shader.PropertyToID("unity_MatrixVP"),
-        inverseViewAndProjectionMatrixID = Shader.PropertyToID("unity_MatrixInvVP");
+        inverseViewAndProjectionMatrixID = Shader.PropertyToID("unity_MatrixInvVP"),
+    
+        CameraMatrixVPInv = Shader.PropertyToID("_CameraMatrixVPInv");
 
 
         // Lighting

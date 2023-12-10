@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace Firecrest
 {
-// this class provides preseted params of shadows and exposes them to the inspector
+
+// this class provides preseted params of global shadow and exposes them to the inspector
 
 [Serializable]
 public class ShadowSettings
@@ -22,14 +23,12 @@ public class ShadowSettings
 		_2048 = 2048, _4096 = 4096, _8192 = 8192
 	}
 
+
 	// PCF filtering
 	public enum FilterMode
 	{
 		PCF2x2, PCF3x3, PCF5x5, PCF7x7
 	}
-
-
-
 
 
 	// atlas params for directional light
@@ -53,6 +52,7 @@ public class ShadowSettings
 
 	}
 
+
 	// create an atlas setting instance
 	public Directional dirLightShadowAtlasSettings = new Directional
 	{
@@ -72,6 +72,7 @@ public class ShadowSettings
 		public TextureSize atlasSize;
 		public FilterMode filter; 
 	}
+
 
 	public OtherLightShadowSettings otherLightShadowSettings = new OtherLightShadowSettings
 	{

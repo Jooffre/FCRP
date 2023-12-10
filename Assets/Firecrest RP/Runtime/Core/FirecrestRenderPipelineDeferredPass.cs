@@ -122,7 +122,7 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
 
         // write G-buffers
         context.SetupCameraProperties(camera);
-        CameraPropertiesSetting.SetProperties(m_buffer, camera);
+        SetCameraMatrix(m_buffer, camera);
         geometryBuffer.Setup(context, camera);
         geometryBuffer.RenderGBbuffer(m_geometryBufferTexIDs, m_cameraDepthHandle, gBufferPassID, cullingResults, batchingSettings[0], batchingSettings[1]);
     
@@ -256,6 +256,10 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
     }
 
 
+
+
+
+
     private void ClearRenderTextures()
     {
         m_cameraDepthHandle?.Release();
@@ -282,12 +286,24 @@ public class FirecrestRenderPipelineDeferredPass : RenderPipeline
         }
     }
 
+
     private void DrawGizmosAfterPP(ScriptableRenderContext context, Camera camera)
     {
         if (Handles.ShouldRenderGizmos())
         {
             context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
         }
+    }
+
+
+    private void SetCameraMatrix(CommandBuffer buffer, Camera camera)
+    {
+        var viewMatrix = camera.worldToCameraMatrix;
+        var projectMatrixDirect = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+        var matrixVPDirect = projectMatrixDirect * viewMatrix;
+        var invMatrixVPDirect = matrixVPDirect.inverse;
+
+        buffer.SetGlobalMatrix(ShaderPropertyID.CameraMatrixVPInv, invMatrixVPDirect);
     }
 
 }
