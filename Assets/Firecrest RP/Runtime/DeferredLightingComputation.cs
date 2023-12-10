@@ -10,12 +10,10 @@ namespace Firecrest
 public class DeferredLightingComputation
 {    
     private const string bufferName = "Deferred Lighting Computation";
-    private const string subBufferName = "Deferred Shading";
+
     private CommandBuffer m_buffer = new CommandBuffer()
     { name = bufferName };
 
-    // private const string tempTexName = "_Temp_DeferredLighting";
-    // private int m_tempRTID = Shader.PropertyToID(tempTexName);
     
     private Mesh m_canvas;
     private Material m_Material;
@@ -56,39 +54,6 @@ public class DeferredLightingComputation
         m_buffer.SetRenderTarget(screenSource, cameraDepth);
         Executebuffer(context, m_buffer);
         context.DrawSkybox(camera);
-
-        //m_buffer.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-        //m_buffer.DrawMesh(m_canvas, Matrix4x4.identity, m_copyMaterial); 
-    }
-
-    /*public void copyCameraToTexture(ScriptableRenderContext context, Camera camera)
-    {
-        m_buffer.GetTemporaryRT(ShaderPropertyID.screenSourceID, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear);
-        //m_buffer.SetGlobalTexture(ShaderPropertyID.screenSourceID, ShaderPropertyID.screenSourceID);
-        m_buffer.Blit(BuiltinRenderTextureType.CameraTarget, ShaderPropertyID.screenSourceID);
-        
-        //m_buffer.SetRenderTarget(ShaderPropertyID.screenSourceID);
-
-        //m_buffer.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-        //m_buffer.DrawMesh(m_canvas, Matrix4x4.identity, m_copyMaterial);
-
-        Executebuffer(context, m_buffer);
-    }*/
-
-    public void copyToCamera(ScriptableRenderContext context, RenderTargetIdentifier screenSource)
-    { 
-        // m_buffer.SetGlobalTexture(screenSourceID, BuiltinRenderTextureType.CameraTarget);
-        // m_buffer.SetRenderTarget(screenSourceID, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-
-        // m_buffer.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-        // m_buffer.DrawMesh(m_canvas, Matrix4x4.identity, m_copyMaterial);
-
-        //m_buffer.GetTemporaryRT(ShaderPropertyID.screenSourceID, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear);
-
-        m_buffer.Blit(screenSource, BuiltinRenderTextureType.CameraTarget);
-
-        //m_buffer.ReleaseTemporaryRT(ShaderPropertyID.screenSourceID);
-        Executebuffer(context, m_buffer);
     }
 }
 
